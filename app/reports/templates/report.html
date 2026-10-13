@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AEGIS-Recon Report — {{ scan.target }}</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-2: #242834;
+            --border: #2e3347;
+            --text: #e4e7f1;
+            --text-muted: #8b92a8;
+            --accent: #6c8cff;
+            --critical: #ff4757;
+            --high: #ff6b35;
+            --medium: #ffa500;
+            --low: #4ecdc4;
+            --info: #6c8cff;
+            --kev: #ff2d55;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg); color: var(--text);
+            line-height: 1.6; padding: 2rem;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { font-size: 1.8rem; margin-bottom: 0.5rem; color: var(--accent); }
+        h2 { font-size: 1.3rem; margin: 2rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+        h3 { font-size: 1.1rem; margin: 1rem 0 0.5rem; }
+        .meta { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 2rem; }
+        .card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 8px; padding: 1.2rem; margin-bottom: 1rem;
+        }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 8px; padding: 1rem; text-align: center;
+        }
+        .stat-card .number { font-size: 2rem; font-weight: 700; }
+        .stat-card .label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; }
+        .severity-critical { color: var(--critical); }
+        .severity-high { color: var(--high); }
+        .severity-medium { color: var(--medium); }
+        .severity-low { color: var(--low); }
+        .severity-informational { color: var(--info); }
+        .badge {
+            display: inline-block; padding: 2px 8px; border-radius: 4px;
+            font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+        }
+        .badge-critical { background: rgba(255,71,87,0.2); color: var(--critical); }
+        .badge-high { background: rgba(255,107,53,0.2); color: var(--high); }
+        .badge-medium { background: rgba(255,165,0,0.2); color: var(--medium); }
+        .badge-low { background: rgba(78,205,196,0.2); color: var(--low); }
+        .badge-kev { background: rgba(255,45,85,0.3); color: var(--kev); border: 1px solid var(--kev); }
+        .badge-confidence { background: rgba(108,140,255,0.15); color: var(--accent); }
+        .badge-evidence { background: rgba(108,140,255,0.1); color: var(--text-muted); }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        th, td { padding: 0.6rem 0.8rem; text-align: left; border-bottom: 1px solid var(--border); }
+        th { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
+        td { font-size: 0.9rem; }
+        .finding { border-left: 3px solid var(--border); padding-left: 1rem; margin-bottom: 1.5rem; }
+        .finding.critical { border-left-color: var(--critical); }
+        .finding.high { border-left-color: var(--high); }
+        .finding.medium { border-left-color: var(--medium); }
+        .finding.low { border-left-color: var(--low); }
+        .factors { margin: 0.5rem 0; }
+        .factor { display: flex; justify-content: space-between; padding: 0.3rem 0; font-size: 0.85rem; }
+        .factor-name { color: var(--text-muted); }
+        .factor-impact { font-weight: 600; }
+        .analysis-section { background: var(--surface-2); border-radius: 8px; padding: 1.5rem; margin: 1rem 0; }
+        .disclaimer {
+            background: rgba(255,165,0,0.1); border: 1px solid rgba(255,165,0,0.3);
+            border-radius: 8px; padding: 1rem; margin-top: 2rem; font-size: 0.85rem;
+            color: var(--medium);
+        }
+        .rec-list { list-style: none; counter-reset: rec; }
+        .rec-list li { counter-increment: rec; padding: 0.5rem 0; padding-left: 2rem; position: relative; }
+        .rec-list li::before {
+            content: counter(rec); position: absolute; left: 0;
+            width: 1.5rem; height: 1.5rem; background: var(--accent);
+            color: var(--bg); border-radius: 50%; text-align: center;
+            font-size: 0.75rem; line-height: 1.5rem; font-weight: 700;
+        }
+        @media print {
+            body { background: #fff; color: #000; }
+            .card, .stat-card, .analysis-section { border: 1px solid #ccc; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🛡️ AEGIS-Recon Security Assessment Report</h1>
+    <div class="meta">
+        Report ID: {{ report_id }} &bull;
+        Generated: {{ generated_at }} &bull;
+        Target: {{ scan.target }} &bull;
+        Profile: {{ scan.profile }}
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="stats">
+        <div class="stat-card">
+            <div class="number">{{ total_services }}</div>
+            <div class="label">Services</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">{{ total_findings }}</div>
+            <div class="label">Findings</div>
+        </div>
+        <div class="stat-card">
+            <div class="number severity-critical">{{ severity_counts.critical }}</div>
+            <div class="label">Critical</div>
+        </div>
+        <div class="stat-card">
+            <div class="number severity-high">{{ severity_counts.high }}</div>
+            <div class="label">High</div>
+        </div>
+        <div class="stat-card">
+            <div class="number severity-medium">{{ severity_counts.medium }}</div>
+            <div class="label">Medium</div>
+        </div>
+        <div class="stat-card">
+            <div class="number" style="color: var(--kev);">{{ kev_count }}</div>
+            <div class="label">KEV Listed</div>
+        </div>
+    </div>
+
+    <!-- Scan Info -->
+    <h2>Scan Information</h2>
+    <div class="card">
+        <table>
+            <tr><th>Target</th><td>{{ scan.target }}</td></tr>
+            <tr><th>Profile</th><td>{{ scan.profile }}</td></tr>
+            <tr><th>Status</th><td>{{ scan.status }}</td></tr>
+            <tr><th>Start Time</th><td>{{ scan.start_time }}</td></tr>
+            <tr><th>End Time</th><td>{{ scan.end_time }}</td></tr>
+            <tr><th>Nmap Version</th><td>{{ scan.nmap_version or 'N/A' }}</td></tr>
+        </table>
+    </div>
+
+    <!-- Services -->
+    <h2>Discovered Services ({{ total_services }})</h2>
+    <div class="card">
+        <table>
+            <thead>
+                <tr><th>IP</th><th>Port</th><th>Protocol</th><th>Service</th><th>Product</th><th>Version</th></tr>
+            </thead>
+            <tbody>
+            {% for svc in services %}
+                <tr>
+                    <td>{{ svc.ip or '' }}</td>
+                    <td>{{ svc.port }}</td>
+                    <td>{{ svc.protocol }}</td>
+                    <td>{{ svc.service_name }}</td>
+                    <td>{{ svc.product or '' }}</td>
+                    <td>{{ svc.version or '' }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Findings -->
+    <h2>Vulnerability Findings ({{ total_findings }})</h2>
+    {% for f in findings %}
+    <div class="finding {{ f.severity or 'informational' }}">
+        <h3>
+            <span class="badge badge-{{ f.severity or 'low' }}">{{ f.severity or 'info' }}</span>
+            {% if f.is_kev %}<span class="badge badge-kev">⚡ KEV</span>{% endif %}
+            {{ f.cve_id or 'No CVE' }} — {{ f.service_name }}:{{ f.port }}
+        </h3>
+        <p style="margin: 0.5rem 0; font-size: 0.9rem;">{{ f.title or '' }}</p>
+        <div style="margin: 0.5rem 0;">
+            <span class="badge badge-confidence">Confidence: {{ f.confidence }}</span>
+            <span class="badge badge-evidence">Evidence: {{ f.evidence_type }}</span>
+            {% if f.cvss_score %}<span class="badge badge-{{ f.severity or 'low' }}">CVSS {{ f.cvss_score }}</span>{% endif %}
+            {% if f.priority_score %}<span class="badge badge-confidence">Priority: {{ f.priority_score }}</span>{% endif %}
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+            {{ f.product or '' }} {{ f.version or '' }} on {{ f.ip or '' }}
+        </p>
+        {% if f.evidence_detail %}
+        <p style="font-size: 0.85rem; margin-top: 0.5rem;"><strong>Evidence:</strong> {{ f.evidence_detail }}</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    {% if not findings %}
+    <div class="card">
+        <p>No CVE matches found for discovered services.</p>
+    </div>
+    {% endif %}
+
+    <!-- Analysis -->
+    {% if analysis %}
+    <h2>Analysis Summary</h2>
+    <div class="analysis-section">
+        {% if analysis.summary %}
+        <h3>Summary</h3>
+        <p>{{ analysis.summary }}</p>
+        {% endif %}
+
+        {% if analysis.risk_overview %}
+        <h3 style="margin-top: 1rem;">Risk Overview</h3>
+        <p>{{ analysis.risk_overview }}</p>
+        {% endif %}
+
+        {% if analysis.recommendations %}
+        <h3 style="margin-top: 1rem;">Recommendations</h3>
+        <ol class="rec-list">
+            {% for rec in analysis.recommendations %}
+            <li>{{ rec }}</li>
+            {% endfor %}
+        </ol>
+        {% endif %}
+
+        {% if analysis.confidence_notes %}
+        <h3 style="margin-top: 1rem;">Confidence Notes</h3>
+        <p style="font-size: 0.9rem;">{{ analysis.confidence_notes }}</p>
+        {% endif %}
+
+        {% if analysis.limitations %}
+        <h3 style="margin-top: 1rem;">Limitations</h3>
+        <p style="font-size: 0.9rem;">{{ analysis.limitations }}</p>
+        {% endif %}
+
+        {% if analysis.analysis_method %}
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 1rem;">
+            Analysis method: {{ analysis.analysis_method }}
+        </p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Disclaimer -->
+    <div class="disclaimer">
+        <strong>⚠️ Disclaimer:</strong> This report is generated by automated scanning and CVE matching.
+        Findings labeled as "hypothesis" require manual verification.
+        A version match is NOT a confirmed vulnerability.
+        This report should be reviewed by a qualified security professional.
+    </div>
+
+    <p style="text-align: center; color: var(--text-muted); margin-top: 2rem; font-size: 0.8rem;">
+        Generated by AEGIS-Recon v1.0.0 &bull; {{ generated_at }}
+    </p>
+</div>
+</body>
+</html>

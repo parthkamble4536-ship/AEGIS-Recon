@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AEGIS-Recon — Security Assessment Dashboard</title>
+    <meta name="description" content="Evidence-based reconnaissance and vulnerability intelligence dashboard">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-brand">
+            <span class="nav-icon">🛡️</span>
+            <span class="nav-title">AEGIS-Recon</span>
+            <span class="nav-badge">v1.0</span>
+        </div>
+        <div class="nav-links">
+            <button class="nav-link active" data-view="dashboard" id="nav-dashboard">Dashboard</button>
+            <button class="nav-link" data-view="scan" id="nav-scan">New Scan</button>
+            <button class="nav-link" data-view="history" id="nav-history">History</button>
+        </div>
+        <div class="nav-status">
+            <span class="status-dot" id="api-status-dot"></span>
+            <span id="api-status-text">Checking...</span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard View -->
+        <section class="view active" id="view-dashboard">
+            <div class="view-header">
+                <h1>Security Assessment Dashboard</h1>
+                <p class="view-subtitle">Evidence-based vulnerability intelligence</p>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="stats-grid" id="dashboard-stats">
+                <div class="stat-card glass">
+                    <div class="stat-icon">🔍</div>
+                    <div class="stat-value" id="stat-total-scans">0</div>
+                    <div class="stat-label">Total Scans</div>
+                </div>
+                <div class="stat-card glass">
+                    <div class="stat-icon">🖥️</div>
+                    <div class="stat-value" id="stat-total-services">0</div>
+                    <div class="stat-label">Services Found</div>
+                </div>
+                <div class="stat-card glass">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-value" id="stat-total-findings">0</div>
+                    <div class="stat-label">Findings</div>
+                </div>
+                <div class="stat-card glass critical-glow">
+                    <div class="stat-icon">🔴</div>
+                    <div class="stat-value" id="stat-critical">0</div>
+                    <div class="stat-label">Critical</div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="charts-grid">
+                <div class="chart-card glass">
+                    <h3>Severity Distribution</h3>
+                    <canvas id="severity-chart"></canvas>
+                </div>
+                <div class="chart-card glass">
+                    <h3>Evidence Types</h3>
+                    <canvas id="evidence-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Scans -->
+            <div class="card glass" id="recent-scans-card">
+                <div class="card-header">
+                    <h3>Recent Scans</h3>
+                    <button class="btn btn-sm" onclick="navigateTo('history')">View All</button>
+                </div>
+                <div class="table-container">
+                    <table id="recent-scans-table">
+                        <thead>
+                            <tr>
+                                <th>Target</th>
+                                <th>Profile</th>
+                                <th>Status</th>
+                                <th>Services</th>
+                                <th>Time</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-scans-body"></tbody>
+                    </table>
+                </div>
+                <div class="empty-state" id="no-scans-msg">
+                    <p>No scans yet. Start your first scan to see results here.</p>
+                    <button class="btn btn-primary" onclick="navigateTo('scan')">Start Scan</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- New Scan View -->
+        <section class="view" id="view-scan">
+            <div class="view-header">
+                <h1>New Scan</h1>
+                <p class="view-subtitle">Configure and launch an authorized security scan</p>
+            </div>
+
+            <div class="scan-form-container">
+                <form id="scan-form" class="card glass">
+                    <div class="form-notice">
+                        <span class="notice-icon">⚠️</span>
+                        <span>Only targets in your allowlist can be scanned. Configure <code>config/allowlist.yaml</code> before scanning.</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="scan-target">Target</label>
+                        <input type="text" id="scan-target" placeholder="e.g., 192.168.56.101" required
+                               autocomplete="off" spellcheck="false">
+                        <span class="form-hint">IP address, CIDR range, or hostname from your allowlist</span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="scan-profile">Scan Profile</label>
+                            <select id="scan-profile">
+                                <option value="quick">Quick — Top 100 ports, ~30s</option>
+                                <option value="standard" selected>Standard — Top 1000 ports + scripts, ~2min</option>
+                                <option value="thorough">Thorough — All ports + OS detection, ~10min</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="scan-ports">Custom Ports (optional)</label>
+                            <input type="text" id="scan-ports" placeholder="e.g., 22,80,443 or 1-1024">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-lg" id="scan-submit">
+                            <span class="btn-text">Launch Scan</span>
+                            <span class="btn-spinner hidden">⏳</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Scan Progress -->
+                <div class="card glass hidden" id="scan-progress">
+                    <h3>Scan in Progress</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="scan-progress-fill"></div>
+                    </div>
+                    <p id="scan-progress-text">Initializing scan...</p>
+                </div>
+
+                <!-- Scan Result -->
+                <div class="card glass hidden" id="scan-result">
+                    <h3 id="scan-result-title">Scan Complete</h3>
+                    <p id="scan-result-message"></p>
+                    <div class="form-actions" style="margin-top: 1rem;">
+                        <button class="btn btn-primary" id="btn-enrich" onclick="enrichScan()">Enrich with CVE Data</button>
+                        <button class="btn btn-secondary" id="btn-view-results" onclick="viewScanResults()">View Results</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- History View -->
+        <section class="view" id="view-history">
+            <div class="view-header">
+                <h1>Scan History</h1>
+                <p class="view-subtitle">All previous security assessments</p>
+            </div>
+            <div class="card glass">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Target</th>
+                                <th>Profile</th>
+                                <th>Status</th>
+                                <th>Hosts Up</th>
+                                <th>Start Time</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Scan Detail View -->
+        <section class="view" id="view-detail">
+            <div class="view-header">
+                <h1 id="detail-title">Scan Details</h1>
+                <div class="view-actions">
+                    <button class="btn btn-sm" onclick="enrichCurrentScan()">🔍 Enrich CVEs</button>
+                    <button class="btn btn-sm" onclick="downloadJSON()">📄 JSON Report</button>
+                    <button class="btn btn-sm" onclick="downloadHTML()">📊 HTML Report</button>
+                </div>
+            </div>
+
+            <!-- Services Table -->
+            <div class="card glass">
+                <h3>Discovered Services</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr><th>IP</th><th>Port</th><th>Service</th><th>Product</th><th>Version</th><th>CPE</th></tr>
+                        </thead>
+                        <tbody id="detail-services-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Findings -->
+            <div class="card glass" id="findings-card">
+                <h3>Vulnerability Findings</h3>
+                <div id="findings-container"></div>
+                <div class="empty-state hidden" id="no-findings-msg">
+                    <p>No findings yet. Click "Enrich CVEs" to match services against the NVD.</p>
+                </div>
+            </div>
+
+            <!-- Analysis -->
+            <div class="card glass" id="analysis-card">
+                <h3>Analysis Summary</h3>
+                <div id="analysis-container"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
