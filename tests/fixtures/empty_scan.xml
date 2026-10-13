@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<nmaprun scanner="nmap" args="nmap -sS -sV --top-ports 100 -T4 --open -oX scan.xml 192.168.56.200" start="1697100100" version="7.94" xmloutputversion="1.05">
+  <scaninfo type="syn" protocol="tcp" numservices="100"/>
+  <verbose level="0"/>
+  <debugging level="0"/>
+  
+  <host starttime="1697100101" endtime="1697100105">
+    <status state="down" reason="no-response" reason_ttl="0"/>
+    <address addr="192.168.56.200" addrtype="ipv4"/>
+    <hostnames/>
+    <ports/>
+  </host>
+  
+  <runstats>
+    <finished time="1697100106" elapsed="6.00" exit="success"/>
+    <hosts up="0" down="1" total="1"/>
+  </runstats>
+</nmaprun>

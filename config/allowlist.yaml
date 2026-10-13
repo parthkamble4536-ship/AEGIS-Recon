@@ -1,0 +1,32 @@
+# AEGIS-Recon Target Allowlist
+# Only targets listed here can be scanned.
+# This is the ONLY authorization control — configure carefully.
+
+# Format:
+#   targets:
+#     - ip: "192.168.56.101"          # Single IP
+#       description: "Metasploitable 2"
+#     - cidr: "192.168.56.0/24"       # CIDR range
+#       description: "Lab network"
+#     - hostname: "dvwa.local"        # Hostname
+#       description: "DVWA container"
+
+targets:
+  - ip: "192.168.56.101"
+    description: "Metasploitable 2 — primary lab target"
+
+  - ip: "192.168.56.102"
+    description: "Secondary lab target (if configured)"
+
+  # Uncomment to allow an entire lab subnet:
+  # - cidr: "192.168.56.0/24"
+  #   description: "Host-only lab network"
+
+# Scan profiles allowed (restrict which profiles users can run)
+allowed_profiles:
+  - quick
+  - standard
+  - thorough
+
+# Maximum concurrent scans
+max_concurrent_scans: 2
