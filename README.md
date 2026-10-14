@@ -133,6 +133,23 @@ pytest tests/integration/
 
 ---
 
+## Documentation
+
+- [System & Architecture Overview](docs/SYSTEM_OVERVIEW.md) — Comprehensive technical guide, schema definitions, and module breakdowns.
+- [Responsible Use Policy](RESPONSIBLE_USE.md) — Legal boundaries and scope guidelines.
+
+---
+
 ## Status
 
-🚧 **Week 1 — Foundation**: Building scanning pipeline, validation, and persistence.
+✅ **Week 1 & Week 2 Complete (v0.2.0)**:
+- Target validation, allowlist enforcement, and injection resistance
+- Safe Nmap scanning pipeline and XML parser
+- SQLite database persistence with WAL mode
+- NVD API 2.0 client & CISA KEV catalog integration with TTL cache
+- 6-factor explainable risk scoring engine
+- AI prompt templates, schema validator, hallucination guard & deterministic fallback
+- JSON & HTML report builders (XSS-safe)
+- Glassmorphism dark-theme web dashboard
+- 146 tests passing in 6.4s (100% pass rate)
+
