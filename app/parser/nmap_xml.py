@@ -13,9 +13,10 @@ Design:
 
 from __future__ import annotations
 
-import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
+import defusedxml.ElementTree as ET
 
 from app.core.errors import MalformedXMLError, ParserError
 from app.core.logging import get_logger
@@ -271,6 +272,6 @@ def _parse_timestamp(ts: str | None) -> datetime | None:
     if ts is None:
         return None
     try:
-        return datetime.fromtimestamp(int(ts), tz=timezone.utc)
+        return datetime.fromtimestamp(int(ts), tz=UTC)
     except (ValueError, TypeError, OSError):
         return None

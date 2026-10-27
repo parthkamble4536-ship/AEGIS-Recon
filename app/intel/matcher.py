@@ -19,18 +19,17 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any
+from datetime import UTC, datetime
 
+from app.core.errors import IntelUnavailableError
 from app.core.logging import get_logger
 from app.intel.cache import cache_get, cache_get_stale, cache_set, get_cache_timestamp
-from app.intel.kev import KEVCatalog, KEVEntry, is_in_kev
+from app.intel.kev import KEVCatalog, is_in_kev
 from app.intel.nvd import (
     NVDVulnerability,
     search_cves_by_cpe,
     search_cves_by_keyword,
 )
-from app.core.errors import IntelUnavailableError
 
 logger = get_logger(__name__)
 
@@ -91,19 +90,24 @@ def match_service_cves(
     # Strategy 1: CPE-based search (highest confidence)
     for cpe in cpe_list:
         cpe_matches = _search_by_cpe(
-            cpe, product, version,
+            cpe,
+            product,
+            version,
             api_key=api_key,
             rate_limit=rate_limit,
             cache_ttl=nvd_cache_ttl,
         )
         for m in cpe_matches:
-            if m.cve_id not in matches or _confidence_rank(m.confidence) > _confidence_rank(matches[m.cve_id].confidence):
+            if m.cve_id not in matches or _confidence_rank(m.confidence) > _confidence_rank(
+                matches[m.cve_id].confidence
+            ):
                 matches[m.cve_id] = m
 
     # Strategy 2: Keyword fallback (only if no CPE results and we have product+version)
     if not matches and product and version:
         keyword_matches = _search_by_keyword(
-            product, version,
+            product,
+            version,
             api_key=api_key,
             rate_limit=rate_limit,
             cache_ttl=nvd_cache_ttl,
@@ -169,7 +173,7 @@ def _search_by_cpe(
         try:
             vulns = search_cves_by_cpe(cpe, api_key=api_key, rate_limit=rate_limit)
             cache_set(cache_key, "nvd", _serialize_vulns(vulns), cache_ttl)
-            intel_ts = datetime.now(timezone.utc).isoformat()
+            intel_ts = datetime.now(UTC).isoformat()
         except IntelUnavailableError:
             # Try stale cache as fallback
             stale_data, stale_ts = cache_get_stale(cache_key)
@@ -185,22 +189,24 @@ def _search_by_cpe(
     matches = []
     for vuln in vulns:
         confidence, method, detail = _assess_cpe_confidence(cpe, version, vuln)
-        matches.append(CVEMatch(
-            cve_id=vuln.cve_id,
-            title=vuln.description[:200] if vuln.description else vuln.cve_id,
-            description=vuln.description,
-            cvss_score=vuln.cvss_v3_score or vuln.cvss_v2_score,
-            cvss_vector=vuln.cvss_v3_vector,
-            severity=vuln.severity,
-            confidence=confidence,
-            evidence_type="external_intelligence" if confidence == "high" else "hypothesis",
-            evidence_detail=detail,
-            match_method=method,
-            source="NVD",
-            source_url=vuln.source_url,
-            references=vuln.references,
-            intel_timestamp=intel_ts,
-        ))
+        matches.append(
+            CVEMatch(
+                cve_id=vuln.cve_id,
+                title=vuln.description[:200] if vuln.description else vuln.cve_id,
+                description=vuln.description,
+                cvss_score=vuln.cvss_v3_score or vuln.cvss_v2_score,
+                cvss_vector=vuln.cvss_v3_vector,
+                severity=vuln.severity,
+                confidence=confidence,
+                evidence_type="external_intelligence" if confidence == "high" else "hypothesis",
+                evidence_detail=detail,
+                match_method=method,
+                source="NVD",
+                source_url=vuln.source_url,
+                references=vuln.references,
+                intel_timestamp=intel_ts,
+            )
+        )
 
     return matches
 
@@ -225,7 +231,7 @@ def _search_by_keyword(
         try:
             vulns = search_cves_by_keyword(keyword, api_key=api_key, rate_limit=rate_limit)
             cache_set(cache_key, "nvd", _serialize_vulns(vulns), cache_ttl)
-            intel_ts = datetime.now(timezone.utc).isoformat()
+            intel_ts = datetime.now(UTC).isoformat()
         except IntelUnavailableError:
             stale_data, stale_ts = cache_get_stale(cache_key)
             if stale_data:
@@ -236,29 +242,29 @@ def _search_by_keyword(
 
     matches = []
     for vuln in vulns:
-        matches.append(CVEMatch(
-            cve_id=vuln.cve_id,
-            title=vuln.description[:200] if vuln.description else vuln.cve_id,
-            description=vuln.description,
-            cvss_score=vuln.cvss_v3_score or vuln.cvss_v2_score,
-            cvss_vector=vuln.cvss_v3_vector,
-            severity=vuln.severity,
-            confidence="medium",
-            evidence_type="hypothesis",
-            evidence_detail=f"Keyword match for '{keyword}'. Version not verified against CPE ranges.",
-            match_method="keyword",
-            source="NVD",
-            source_url=vuln.source_url,
-            references=vuln.references,
-            intel_timestamp=intel_ts,
-        ))
+        matches.append(
+            CVEMatch(
+                cve_id=vuln.cve_id,
+                title=vuln.description[:200] if vuln.description else vuln.cve_id,
+                description=vuln.description,
+                cvss_score=vuln.cvss_v3_score or vuln.cvss_v2_score,
+                cvss_vector=vuln.cvss_v3_vector,
+                severity=vuln.severity,
+                confidence="medium",
+                evidence_type="hypothesis",
+                evidence_detail=f"Keyword match for '{keyword}'. Version not verified against CPE ranges.",
+                match_method="keyword",
+                source="NVD",
+                source_url=vuln.source_url,
+                references=vuln.references,
+                intel_timestamp=intel_ts,
+            )
+        )
 
     return matches
 
 
-def _assess_cpe_confidence(
-    cpe: str, version: str, vuln: NVDVulnerability
-) -> tuple[str, str, str]:
+def _assess_cpe_confidence(cpe: str, version: str, vuln: NVDVulnerability) -> tuple[str, str, str]:
     """
     Assess how confident we are that a CPE match means the service is vulnerable.
 
@@ -282,9 +288,7 @@ def _assess_cpe_confidence(
         has_range = any([v_start_inc, v_start_exc, v_end_inc, v_end_exc])
 
         if has_range and version:
-            in_range = _check_version_range(
-                version, v_start_inc, v_start_exc, v_end_inc, v_end_exc
-            )
+            in_range = _check_version_range(version, v_start_inc, v_start_exc, v_end_inc, v_end_exc)
             if in_range:
                 range_desc = _describe_range(v_start_inc, v_start_exc, v_end_inc, v_end_exc)
                 return (
@@ -385,9 +389,7 @@ def _parse_version_tuple(version: str) -> tuple[int, ...] | None:
         return None
 
 
-def _describe_range(
-    start_inc: str, start_exc: str, end_inc: str, end_exc: str
-) -> str:
+def _describe_range(start_inc: str, start_exc: str, end_inc: str, end_exc: str) -> str:
     """Create a human-readable version range description."""
     parts = []
     if start_inc:
@@ -408,23 +410,25 @@ def _confidence_rank(confidence: str) -> int:
 
 def _serialize_vulns(vulns: list[NVDVulnerability]) -> str:
     """Serialize NVDVulnerability list to JSON for caching."""
-    return json.dumps([
-        {
-            "cve_id": v.cve_id,
-            "description": v.description,
-            "cvss_v3_score": v.cvss_v3_score,
-            "cvss_v3_vector": v.cvss_v3_vector,
-            "cvss_v2_score": v.cvss_v2_score,
-            "severity": v.severity,
-            "published": v.published,
-            "modified": v.modified,
-            "references": v.references,
-            "cpe_matches": v.cpe_matches,
-            "weaknesses": v.weaknesses,
-            "source_url": v.source_url,
-        }
-        for v in vulns
-    ])
+    return json.dumps(
+        [
+            {
+                "cve_id": v.cve_id,
+                "description": v.description,
+                "cvss_v3_score": v.cvss_v3_score,
+                "cvss_v3_vector": v.cvss_v3_vector,
+                "cvss_v2_score": v.cvss_v2_score,
+                "severity": v.severity,
+                "published": v.published,
+                "modified": v.modified,
+                "references": v.references,
+                "cpe_matches": v.cpe_matches,
+                "weaknesses": v.weaknesses,
+                "source_url": v.source_url,
+            }
+            for v in vulns
+        ]
+    )
 
 
 def _deserialize_vulns(data: str) -> list[NVDVulnerability]:

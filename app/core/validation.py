@@ -19,7 +19,6 @@ import ipaddress
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
 
 import yaml
 
@@ -30,13 +29,11 @@ logger = get_logger(__name__)
 
 # Characters that must NEVER appear in any user-supplied target string.
 # This blocks shell injection even if a downstream component mishandles the value.
-DANGEROUS_CHARS = set(";|&`$(){}[]!#><\\\"\'^%")
+DANGEROUS_CHARS = set(";|&`$(){}[]!#><\\\"'^%")
 
 # Hostname pattern: labels separated by dots, each 1-63 chars, alphanumeric + hyphens.
 # No trailing dot, no leading/trailing hyphens per label.
-_HOSTNAME_RE = re.compile(
-    r"^(?!-)[a-zA-Z0-9-]{1,63}(?<!-)(\.[a-zA-Z0-9-]{1,63})*$"
-)
+_HOSTNAME_RE = re.compile(r"^(?!-)[a-zA-Z0-9-]{1,63}(?<!-)(\.[a-zA-Z0-9-]{1,63})*$")
 
 # Maximum target string length to prevent DoS via oversized inputs
 MAX_TARGET_LENGTH = 253  # DNS max hostname length
@@ -50,9 +47,7 @@ class AllowlistEntry:
     value: str
     description: str = ""
     # For CIDR entries, the parsed network for containment checks
-    network: ipaddress.IPv4Network | ipaddress.IPv6Network | None = field(
-        default=None, repr=False
-    )
+    network: ipaddress.IPv4Network | ipaddress.IPv6Network | None = field(default=None, repr=False)
 
 
 @dataclass
@@ -108,9 +103,7 @@ class Allowlist:
                 try:
                     ipaddress.ip_address(ip_str)
                 except ValueError as e:
-                    raise AllowlistLoadError(
-                        f"Invalid IP in allowlist: {ip_str}"
-                    ) from e
+                    raise AllowlistLoadError(f"Invalid IP in allowlist: {ip_str}") from e
                 entries.append(AllowlistEntry("ip", ip_str, desc))
 
             elif "cidr" in item:
@@ -118,9 +111,7 @@ class Allowlist:
                 try:
                     network = ipaddress.ip_network(cidr_str, strict=False)
                 except ValueError as e:
-                    raise AllowlistLoadError(
-                        f"Invalid CIDR in allowlist: {cidr_str}"
-                    ) from e
+                    raise AllowlistLoadError(f"Invalid CIDR in allowlist: {cidr_str}") from e
                 entries.append(AllowlistEntry("cidr", cidr_str, desc, network=network))
 
             elif "hostname" in item:
@@ -171,9 +162,7 @@ def validate_target(target: str, allowlist: Allowlist) -> str:
     target = target.strip()
 
     if len(target) > MAX_TARGET_LENGTH:
-        raise ValidationError(
-            f"Target too long ({len(target)} chars, max {MAX_TARGET_LENGTH})."
-        )
+        raise ValidationError(f"Target too long ({len(target)} chars, max {MAX_TARGET_LENGTH}).")
 
     # ── Step 2: Reject dangerous characters ───────────────
     found_dangerous = DANGEROUS_CHARS.intersection(target)
@@ -237,9 +226,7 @@ def _classify_target(target: str) -> str:
             raise ValidationError("Cannot scan localhost.")
         return "hostname"
 
-    raise ValidationError(
-        f"Target '{target}' is not a valid IP address, CIDR range, or hostname."
-    )
+    raise ValidationError(f"Target '{target}' is not a valid IP address, CIDR range, or hostname.")
 
 
 def _check_allowlist(target: str, target_type: str, allowlist: Allowlist) -> None:

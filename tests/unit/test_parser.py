@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.core.errors import MalformedXMLError, ParserError
+from app.core.errors import MalformedXMLError
 from app.parser.nmap_xml import ParsedScan, parse_nmap_xml
 
 

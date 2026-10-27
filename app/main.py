@@ -11,27 +11,28 @@ Creates and configures the FastAPI app with:
 
 from __future__ import annotations
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response as StarletteResponse
 
 from app.config import get_settings
 from app.core.errors import (
     AegisError,
     AllowlistError,
-    ValidationError,
-    ScannerError,
-    IntelError,
-    LLMError,
     DatabaseError,
+    IntelError,
+    ScannerError,
+    ValidationError,
 )
 from app.core.logging import get_logger, setup_logging
-from app.db.database import init_db, close_db
+from app.db.database import close_db, init_db
 
 logger = get_logger(__name__)
 
@@ -50,7 +51,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
-    settings = get_settings()
+    get_settings()
 
     app = FastAPI(
         title="AEGIS-Recon",
@@ -61,6 +62,31 @@ def create_app() -> FastAPI:
         redoc_url="/api/redoc",
     )
 
+    # ── Security Headers Middleware ────────────────────────────────────────
+    class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+        """Add OWASP-recommended security headers to every response."""
+
+        async def dispatch(self, request: Request, call_next: object) -> StarletteResponse:
+            response: StarletteResponse = await call_next(request)  # type: ignore[arg-type]
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            response.headers["X-Frame-Options"] = "DENY"
+            response.headers["X-XSS-Protection"] = (
+                "0"  # Deprecated but harmless; CSP is the real guard
+            )
+            response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+            response.headers["Content-Security-Policy"] = (
+                "default-src 'self'; "
+                "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                "font-src 'self' https://fonts.gstatic.com; "
+                "img-src 'self' data:; "
+                "connect-src 'self';"
+            )
+            response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+            return response
+
+    app.add_middleware(SecurityHeadersMiddleware)
+
     # CORS — local dev only
     app.add_middleware(
         CORSMiddleware,
@@ -70,10 +96,10 @@ def create_app() -> FastAPI:
     )
 
     # Register API routers
-    from app.api.health import router as health_router
-    from app.api.scans import router as scans_router
     from app.api.findings import router as findings_router
+    from app.api.health import router as health_router
     from app.api.reports import router as reports_router
+    from app.api.scans import router as scans_router
 
     app.include_router(health_router, prefix="/api", tags=["health"])
     app.include_router(scans_router, prefix="/api", tags=["scans"])
@@ -88,49 +114,67 @@ def create_app() -> FastAPI:
     # Exception handlers
     @app.exception_handler(ValidationError)
     async def validation_error_handler(request: Request, exc: ValidationError) -> JSONResponse:
-        return JSONResponse(status_code=422, content={
-            "error": "validation_error",
-            "message": exc.message,
-            "detail": exc.detail,
-        })
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": "validation_error",
+                "message": exc.message,
+                "detail": exc.detail,
+            },
+        )
 
     @app.exception_handler(AllowlistError)
     async def allowlist_error_handler(request: Request, exc: AllowlistError) -> JSONResponse:
-        return JSONResponse(status_code=403, content={
-            "error": "not_authorized",
-            "message": exc.message,
-            "detail": exc.detail,
-        })
+        return JSONResponse(
+            status_code=403,
+            content={
+                "error": "not_authorized",
+                "message": exc.message,
+                "detail": exc.detail,
+            },
+        )
 
     @app.exception_handler(ScannerError)
     async def scanner_error_handler(request: Request, exc: ScannerError) -> JSONResponse:
-        return JSONResponse(status_code=500, content={
-            "error": "scanner_error",
-            "message": exc.message,
-            "detail": exc.detail,
-        })
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "scanner_error",
+                "message": exc.message,
+                "detail": exc.detail,
+            },
+        )
 
     @app.exception_handler(IntelError)
     async def intel_error_handler(request: Request, exc: IntelError) -> JSONResponse:
-        return JSONResponse(status_code=502, content={
-            "error": "intel_error",
-            "message": exc.message,
-            "detail": exc.detail,
-        })
+        return JSONResponse(
+            status_code=502,
+            content={
+                "error": "intel_error",
+                "message": exc.message,
+                "detail": exc.detail,
+            },
+        )
 
     @app.exception_handler(DatabaseError)
     async def database_error_handler(request: Request, exc: DatabaseError) -> JSONResponse:
-        return JSONResponse(status_code=500, content={
-            "error": "database_error",
-            "message": exc.message,
-        })
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "database_error",
+                "message": exc.message,
+            },
+        )
 
     @app.exception_handler(AegisError)
     async def aegis_error_handler(request: Request, exc: AegisError) -> JSONResponse:
-        return JSONResponse(status_code=500, content={
-            "error": "internal_error",
-            "message": exc.message,
-        })
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "internal_error",
+                "message": exc.message,
+            },
+        )
 
     return app
 

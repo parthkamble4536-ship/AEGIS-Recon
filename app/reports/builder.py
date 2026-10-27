@@ -16,9 +16,8 @@ Reports include:
 
 from __future__ import annotations
 
-import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -53,7 +52,7 @@ def build_json_report(
         Complete report dict.
     """
     report_id = str(uuid.uuid4())
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
 
     # Severity counts
     severity_counts = {"critical": 0, "high": 0, "medium": 0, "low": 0, "informational": 0}
@@ -147,7 +146,7 @@ def build_html_report(
 
     html = template.render(
         report_id=str(uuid.uuid4()),
-        generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
+        generated_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
         scan=scan,
         hosts=hosts,
         services=services,

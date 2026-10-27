@@ -73,36 +73,44 @@ def calculate_risk(
     if cvss_score is not None:
         cvss_contribution = min(cvss_score * 4, 40.0)
         score += cvss_contribution
-        factors.append({
-            "name": "CVSS Base Score",
-            "impact": round(cvss_contribution, 1),
-            "detail": f"CVSS {cvss_score}/10 ({cvss_severity}) contributes up to 40% of priority.",
-        })
+        factors.append(
+            {
+                "name": "CVSS Base Score",
+                "impact": round(cvss_contribution, 1),
+                "detail": f"CVSS {cvss_score}/10 ({cvss_severity}) contributes up to 40% of priority.",
+            }
+        )
     else:
-        factors.append({
-            "name": "CVSS Base Score",
-            "impact": 0,
-            "detail": "No CVSS score available. Score based on other factors only.",
-        })
+        factors.append(
+            {
+                "name": "CVSS Base Score",
+                "impact": 0,
+                "detail": "No CVSS score available. Score based on other factors only.",
+            }
+        )
 
     # ── Factor 2: KEV Status (+20 points) ────────────────
     if is_kev:
         score += 20.0
-        factors.append({
-            "name": "CISA KEV Listed",
-            "impact": 20.0,
-            "detail": "CVE is in CISA Known Exploited Vulnerabilities catalog — confirmed actively exploited.",
-        })
+        factors.append(
+            {
+                "name": "CISA KEV Listed",
+                "impact": 20.0,
+                "detail": "CVE is in CISA Known Exploited Vulnerabilities catalog — confirmed actively exploited.",
+            }
+        )
 
     # ── Factor 3: Confidence Level ───────────────────────
     confidence_scores = {"high": 15.0, "medium": 8.0, "low": 2.0}
     conf_points = confidence_scores.get(confidence, 2.0)
     score += conf_points
-    factors.append({
-        "name": "Match Confidence",
-        "impact": conf_points,
-        "detail": f"Confidence: {confidence}. Method: {match_method or 'unknown'}.",
-    })
+    factors.append(
+        {
+            "name": "Match Confidence",
+            "impact": conf_points,
+            "detail": f"Confidence: {confidence}. Method: {match_method or 'unknown'}.",
+        }
+    )
 
     # ── Factor 4: Evidence Type ──────────────────────────
     evidence_scores = {
@@ -113,33 +121,49 @@ def calculate_risk(
     }
     ev_points = evidence_scores.get(evidence_type, 3.0)
     score += ev_points
-    factors.append({
-        "name": "Evidence Type",
-        "impact": ev_points,
-        "detail": f"Evidence: {evidence_type}. "
-        + _evidence_explanation(evidence_type),
-    })
+    factors.append(
+        {
+            "name": "Evidence Type",
+            "impact": ev_points,
+            "detail": f"Evidence: {evidence_type}. " + _evidence_explanation(evidence_type),
+        }
+    )
 
     # ── Factor 5: Exploit References (+5 points) ─────────
     if has_exploit_ref:
         score += 5.0
-        factors.append({
-            "name": "Exploit Reference",
-            "impact": 5.0,
-            "detail": "Public exploit references found in NVD data.",
-        })
+        factors.append(
+            {
+                "name": "Exploit Reference",
+                "impact": 5.0,
+                "detail": "Public exploit references found in NVD data.",
+            }
+        )
 
     # ── Factor 6: Service Exposure (+5 points) ───────────
-    high_value_services = {"http", "https", "ssh", "ftp", "smb", "rdp", "telnet", "mysql", "postgresql", "mssql"}
+    high_value_services = {
+        "http",
+        "https",
+        "ssh",
+        "ftp",
+        "smb",
+        "rdp",
+        "telnet",
+        "mysql",
+        "postgresql",
+        "mssql",
+    }
     high_value_ports = {21, 22, 23, 25, 80, 443, 445, 3306, 3389, 5432, 8080, 8443}
 
     if service_name.lower() in high_value_services or port in high_value_ports:
         score += 5.0
-        factors.append({
-            "name": "Service Exposure",
-            "impact": 5.0,
-            "detail": f"Service {service_name}:{port} is commonly targeted.",
-        })
+        factors.append(
+            {
+                "name": "Service Exposure",
+                "impact": 5.0,
+                "detail": f"Service {service_name}:{port} is commonly targeted.",
+            }
+        )
 
     # ── Clamp and classify ───────────────────────────────
     score = min(max(score, 0.0), 100.0)

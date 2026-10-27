@@ -12,7 +12,6 @@ from __future__ import annotations
 
 from typing import Any
 
-
 ANALYSIS_SYSTEM_PROMPT = """You are a cybersecurity analyst assistant for AEGIS-Recon.
 Your role is to summarize scan findings for a security assessment report.
 
@@ -72,20 +71,22 @@ def build_analysis_prompt(
     # Sanitize findings for the prompt — only include safe fields
     safe_findings = []
     for f in findings:
-        safe_findings.append({
-            "cve_id": f.get("cve_id", ""),
-            "severity": f.get("severity", ""),
-            "cvss_score": f.get("cvss_score"),
-            "confidence": f.get("confidence", ""),
-            "evidence_type": f.get("evidence_type", ""),
-            "service": f.get("service_name", ""),
-            "port": f.get("port", ""),
-            "product": f.get("product", ""),
-            "version": f.get("version", ""),
-            "is_kev": bool(f.get("is_kev", False)),
-            "priority_score": f.get("priority_score"),
-            "title": str(f.get("title", ""))[:200],
-        })
+        safe_findings.append(
+            {
+                "cve_id": f.get("cve_id", ""),
+                "severity": f.get("severity", ""),
+                "cvss_score": f.get("cvss_score"),
+                "confidence": f.get("confidence", ""),
+                "evidence_type": f.get("evidence_type", ""),
+                "service": f.get("service_name", ""),
+                "port": f.get("port", ""),
+                "product": f.get("product", ""),
+                "version": f.get("version", ""),
+                "is_kev": bool(f.get("is_kev", False)),
+                "priority_score": f.get("priority_score"),
+                "title": str(f.get("title", ""))[:200],
+            }
+        )
 
     findings_json = json.dumps(safe_findings, indent=2)
 

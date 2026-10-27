@@ -8,17 +8,14 @@ Covers: init, save scan, save parsed data, queries, findings.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-import pytest
-
-from app.db.database import get_db, init_db, reset_db
+from app.db.database import get_db
 from app.db.repository import (
     get_all_scans,
     get_findings_for_scan,
     get_hosts_for_scan,
     get_scan,
-    get_services_for_host,
     get_services_for_scan,
     save_finding,
     save_parsed_scan,
@@ -72,8 +69,8 @@ class TestSaveScan:
             target="192.168.56.101",
             profile="quick",
             status="completed",
-            start_time=datetime(2023, 10, 12, 12, 0, 0, tzinfo=timezone.utc),
-            end_time=datetime(2023, 10, 12, 12, 0, 35, tzinfo=timezone.utc),
+            start_time=datetime(2023, 10, 12, 12, 0, 0, tzinfo=UTC),
+            end_time=datetime(2023, 10, 12, 12, 0, 35, tzinfo=UTC),
             nmap_version="7.94",
             command_args=["-sS", "-sV", "--top-ports", "100", "192.168.56.101"],
             exit_code=0,
@@ -165,7 +162,7 @@ class TestSaveParsedScan:
             target="192.168.56.101",
             profile="quick",
             status="completed",
-            start_time=datetime(2023, 10, 12, 12, 0, 0, tzinfo=timezone.utc),
+            start_time=datetime(2023, 10, 12, 12, 0, 0, tzinfo=UTC),
         )
         save_scan(scan_result)
 
@@ -182,7 +179,7 @@ class TestSaveParsedScan:
             target="192.168.56.101",
             profile="quick",
             status="completed",
-            start_time=datetime(2023, 10, 12, 12, 0, 0, tzinfo=timezone.utc),
+            start_time=datetime(2023, 10, 12, 12, 0, 0, tzinfo=UTC),
         )
         save_scan(scan_result)
         save_parsed_scan("test-hosts-001", self._make_parsed_scan())
@@ -198,7 +195,7 @@ class TestSaveParsedScan:
             target="192.168.56.101",
             profile="quick",
             status="completed",
-            start_time=datetime(2023, 10, 12, 12, 0, 0, tzinfo=timezone.utc),
+            start_time=datetime(2023, 10, 12, 12, 0, 0, tzinfo=UTC),
         )
         save_scan(scan_result)
         save_parsed_scan("test-svc-001", self._make_parsed_scan())
@@ -216,7 +213,7 @@ class TestSaveParsedScan:
             target="192.168.56.101",
             profile="quick",
             status="completed",
-            start_time=datetime(2023, 10, 12, 12, 0, 0, tzinfo=timezone.utc),
+            start_time=datetime(2023, 10, 12, 12, 0, 0, tzinfo=UTC),
         )
         save_scan(scan_result)
         save_parsed_scan("test-detail-001", self._make_parsed_scan())
@@ -240,7 +237,7 @@ class TestSaveFinding:
             target="192.168.56.101",
             profile="quick",
             status="completed",
-            start_time=datetime(2023, 10, 12, 12, 0, 0, tzinfo=timezone.utc),
+            start_time=datetime(2023, 10, 12, 12, 0, 0, tzinfo=UTC),
         )
         save_scan(scan_result)
 
@@ -251,8 +248,12 @@ class TestSaveFinding:
                     status="up",
                     services=[
                         ParsedService(
-                            port=21, protocol="tcp", state="open",
-                            service_name="ftp", product="vsftpd", version="2.3.4",
+                            port=21,
+                            protocol="tcp",
+                            state="open",
+                            service_name="ftp",
+                            product="vsftpd",
+                            version="2.3.4",
                         ),
                     ],
                 ),
@@ -265,22 +266,24 @@ class TestSaveFinding:
         service_id = services[0]["id"]
 
         # Save a finding
-        finding_id = save_finding({
-            "service_id": service_id,
-            "scan_id": "test-finding-001",
-            "cve_id": "CVE-2011-2523",
-            "title": "vsftpd 2.3.4 backdoor",
-            "description": "vsftpd 2.3.4 downloaded between 2011-06-30 and 2011-07-01 contains a backdoor.",
-            "cvss_score": 9.8,
-            "severity": "critical",
-            "confidence": "high",
-            "evidence_type": "external_intelligence",
-            "evidence_detail": "Exact version match: vsftpd 2.3.4 matches CVE-2011-2523 affected version.",
-            "source": "NVD",
-            "is_kev": 0,
-            "priority_score": 95.0,
-            "priority_factors": ["CVSS 9.8", "Exact version match", "Known backdoor"],
-        })
+        save_finding(
+            {
+                "service_id": service_id,
+                "scan_id": "test-finding-001",
+                "cve_id": "CVE-2011-2523",
+                "title": "vsftpd 2.3.4 backdoor",
+                "description": "vsftpd 2.3.4 downloaded between 2011-06-30 and 2011-07-01 contains a backdoor.",
+                "cvss_score": 9.8,
+                "severity": "critical",
+                "confidence": "high",
+                "evidence_type": "external_intelligence",
+                "evidence_detail": "Exact version match: vsftpd 2.3.4 matches CVE-2011-2523 affected version.",
+                "source": "NVD",
+                "is_kev": 0,
+                "priority_score": 95.0,
+                "priority_factors": ["CVSS 9.8", "Exact version match", "Known backdoor"],
+            }
+        )
 
         # Query findings
         findings = get_findings_for_scan("test-finding-001")

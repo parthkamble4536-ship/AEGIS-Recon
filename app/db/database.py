@@ -12,9 +12,9 @@ from __future__ import annotations
 
 import sqlite3
 import threading
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator
 
 from app.core.errors import DatabaseError
 from app.core.logging import get_logger

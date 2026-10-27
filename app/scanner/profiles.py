@@ -37,13 +37,16 @@ QUICK = ScanProfile(
     name="quick",
     description="Fast TCP SYN scan of top 100 ports with service version detection.",
     arguments=(
-        "-sS",          # TCP SYN scan (stealthier, needs raw sockets)
-        "-sV",          # Service version detection
-        "--top-ports", "100",
-        "-T4",          # Aggressive timing
-        "--open",       # Only show open ports
-        "--max-retries", "1",
-        "--host-timeout", "60s",
+        "-sS",  # TCP SYN scan (stealthier, needs raw sockets)
+        "-sV",  # Service version detection
+        "--top-ports",
+        "100",
+        "-T4",  # Aggressive timing
+        "--open",  # Only show open ports
+        "--max-retries",
+        "1",
+        "--host-timeout",
+        "60s",
     ),
     requires_privileged=True,
     time_factor=1.0,
@@ -53,14 +56,17 @@ STANDARD = ScanProfile(
     name="standard",
     description="TCP SYN scan of top 1000 ports with version detection and default scripts.",
     arguments=(
-        "-sS",          # TCP SYN scan
-        "-sV",          # Service version detection
-        "-sC",          # Default safe scripts
-        "--top-ports", "1000",
-        "-T3",          # Normal timing
+        "-sS",  # TCP SYN scan
+        "-sV",  # Service version detection
+        "-sC",  # Default safe scripts
+        "--top-ports",
+        "1000",
+        "-T3",  # Normal timing
         "--open",
-        "--max-retries", "2",
-        "--host-timeout", "120s",
+        "--max-retries",
+        "2",
+        "--host-timeout",
+        "120s",
     ),
     requires_privileged=True,
     time_factor=3.0,
@@ -70,16 +76,19 @@ THOROUGH = ScanProfile(
     name="thorough",
     description="Full TCP port scan with version, OS detection, and safe scripts.",
     arguments=(
-        "-sS",          # TCP SYN scan
-        "-sV",          # Service version detection
-        "-sC",          # Default safe scripts
-        "-O",           # OS detection
-        "-p-",          # All 65535 ports
+        "-sS",  # TCP SYN scan
+        "-sV",  # Service version detection
+        "-sC",  # Default safe scripts
+        "-O",  # OS detection
+        "-p-",  # All 65535 ports
         "-T3",
         "--open",
-        "--max-retries", "3",
-        "--host-timeout", "300s",
-        "--version-intensity", "5",
+        "--max-retries",
+        "3",
+        "--host-timeout",
+        "300s",
+        "--version-intensity",
+        "5",
     ),
     requires_privileged=True,
     time_factor=10.0,

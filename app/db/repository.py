@@ -9,9 +9,7 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timezone
 
-from app.core.errors import DatabaseError
 from app.core.logging import get_logger
 from app.db.database import get_db
 from app.parser.nmap_xml import ParsedHost, ParsedScan, ParsedService
@@ -51,7 +49,9 @@ def save_scan(result: ScanResult) -> str:
                 result.nmap_version,
                 json.dumps(result.command_args),
                 result.error_message,
-                0, 0, 0,  # Updated after parsing
+                0,
+                0,
+                0,  # Updated after parsing
             ),
         )
     logger.info("scan_saved", scan_id=result.scan_id)
@@ -139,9 +139,7 @@ def save_host(scan_id: str, host: ParsedHost) -> str:
     return host_id
 
 
-def save_service(
-    conn, host_id: str, scan_id: str, service: ParsedService
-) -> str:
+def save_service(conn, host_id: str, scan_id: str, service: ParsedService) -> str:
     """Save a single service (called within a transaction)."""
     service_id = str(uuid.uuid4())
     conn.execute(

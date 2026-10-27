@@ -8,6 +8,7 @@ python-dotenv>=1.0.0
 jinja2>=3.1.4
 pyyaml>=6.0.2
 structlog>=24.4.0
+defusedxml>=0.7.1
 
 # Dev / Testing
 pytest>=8.3.0

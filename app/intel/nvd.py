@@ -16,12 +16,11 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from typing import Any
 
 import httpx
 
-from app.core.errors import IntelParseError, IntelUnavailableError
+from app.core.errors import IntelUnavailableError
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -184,7 +183,7 @@ def _query_nvd(
                     attempt=attempt + 1,
                 )
                 if attempt < max_retries - 1:
-                    time.sleep(2 ** attempt)
+                    time.sleep(2**attempt)
                     continue
                 raise IntelUnavailableError(
                     f"NVD API returned status {response.status_code}.",
@@ -193,14 +192,14 @@ def _query_nvd(
         except httpx.TimeoutException:
             logger.warning("nvd_timeout", attempt=attempt + 1)
             if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)
+                time.sleep(2**attempt)
                 continue
             raise IntelUnavailableError("NVD API request timed out.")
 
         except httpx.HTTPError as e:
             logger.warning("nvd_http_error", error=str(e), attempt=attempt + 1)
             if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)
+                time.sleep(2**attempt)
                 continue
             raise IntelUnavailableError(f"NVD API connection error: {e}")
 
@@ -308,8 +307,10 @@ def _extract_cpe_matches(configurations: list[dict]) -> list[dict[str, Any]]:
                 }
                 # Version range fields
                 for key in (
-                    "versionStartIncluding", "versionStartExcluding",
-                    "versionEndIncluding", "versionEndExcluding",
+                    "versionStartIncluding",
+                    "versionStartExcluding",
+                    "versionEndIncluding",
+                    "versionEndExcluding",
                 ):
                     if key in match:
                         entry[key] = match[key]

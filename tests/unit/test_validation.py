@@ -12,13 +12,11 @@ Tests cover:
 
 from __future__ import annotations
 
-import ipaddress
 import pytest
 
 from app.core.errors import AllowlistError, ValidationError
 from app.core.validation import (
     Allowlist,
-    AllowlistEntry,
     validate_ports,
     validate_profile,
     validate_target,
@@ -118,9 +116,7 @@ class TestValidateTarget:
             "192.168.56.101\\",
         ],
     )
-    def test_injection_strings_rejected(
-        self, injection: str, sample_allowlist: Allowlist
-    ) -> None:
+    def test_injection_strings_rejected(self, injection: str, sample_allowlist: Allowlist) -> None:
         with pytest.raises(ValidationError, match="invalid characters"):
             validate_target(injection, sample_allowlist)
 
@@ -128,11 +124,30 @@ class TestValidateTarget:
 
     @pytest.mark.parametrize(
         "char",
-        [";", "|", "&", "`", "$", "(", ")", "{", "}", "[", "]", "!", "#", ">", "<", "\\", '"', "'", "^", "%"],
+        [
+            ";",
+            "|",
+            "&",
+            "`",
+            "$",
+            "(",
+            ")",
+            "{",
+            "}",
+            "[",
+            "]",
+            "!",
+            "#",
+            ">",
+            "<",
+            "\\",
+            '"',
+            "'",
+            "^",
+            "%",
+        ],
     )
-    def test_each_dangerous_char_rejected(
-        self, char: str, sample_allowlist: Allowlist
-    ) -> None:
+    def test_each_dangerous_char_rejected(self, char: str, sample_allowlist: Allowlist) -> None:
         with pytest.raises(ValidationError, match="invalid characters"):
             validate_target(f"192.168.56.101{char}", sample_allowlist)
 

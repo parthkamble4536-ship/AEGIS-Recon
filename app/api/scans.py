@@ -8,15 +8,16 @@ GET  /api/scans/{scan_id} — Get scan details with hosts and services
 
 from __future__ import annotations
 
-import json
 from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.config import get_settings
-from app.core.errors import AllowlistError, AllowlistLoadError, ScannerError, ValidationError
+from app.core.auth import require_api_key
+from app.core.errors import AllowlistLoadError
 from app.core.logging import get_logger
+from app.core.ratelimit import limit_api_rate, limit_scan_rate
 from app.core.validation import Allowlist, validate_ports, validate_profile, validate_target
 from app.db.repository import (
     get_all_scans,
@@ -27,7 +28,7 @@ from app.db.repository import (
     save_scan,
 )
 from app.parser.nmap_xml import parse_nmap_xml
-from app.scanner.runner import ScanResult, run_scan
+from app.scanner.runner import run_scan
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -38,7 +39,9 @@ class ScanRequest(BaseModel):
 
     target: str = Field(..., description="Target IP, CIDR, or hostname (must be in allowlist)")
     profile: str = Field(default="quick", description="Scan profile: quick, standard, thorough")
-    ports: str | None = Field(default=None, description="Optional port specification (e.g., '22,80,443')")
+    ports: str | None = Field(
+        default=None, description="Optional port specification (e.g., '22,80,443')"
+    )
 
 
 class ScanResponse(BaseModel):
@@ -51,7 +54,11 @@ class ScanResponse(BaseModel):
     message: str
 
 
-@router.post("/scans", response_model=ScanResponse)
+@router.post(
+    "/scans",
+    response_model=ScanResponse,
+    dependencies=[Depends(require_api_key), Depends(limit_scan_rate)],
+)
 async def create_scan(request: ScanRequest) -> ScanResponse:
     """
     Start a new scan.
@@ -109,14 +116,14 @@ async def create_scan(request: ScanRequest) -> ScanResponse:
     )
 
 
-@router.get("/scans")
+@router.get("/scans", dependencies=[Depends(limit_api_rate)])
 async def list_scans(limit: int = 50, offset: int = 0) -> dict[str, Any]:
     """List all scans, newest first."""
     scans = get_all_scans(limit=min(limit, 100), offset=offset)
     return {"scans": scans, "count": len(scans)}
 
 
-@router.get("/scans/{scan_id}")
+@router.get("/scans/{scan_id}", dependencies=[Depends(limit_api_rate)])
 async def get_scan_detail(scan_id: str) -> dict[str, Any]:
     """Get full scan details including hosts and services."""
     scan = get_scan(scan_id)

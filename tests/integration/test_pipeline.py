@@ -8,12 +8,11 @@ Tests the complete flow without requiring a real Nmap installation.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
-from pathlib import Path
+from datetime import UTC, datetime
 
 import pytest
 
-from app.db.database import get_db, init_db, reset_db
+from app.db.database import init_db, reset_db
 from app.db.repository import (
     get_hosts_for_scan,
     get_scan,
@@ -51,8 +50,8 @@ class TestScanParseStorePipeline:
             profile="quick",
             status="completed",
             xml_output=metasploitable_xml,
-            start_time=datetime(2023, 10, 12, 12, 0, 0, tzinfo=timezone.utc),
-            end_time=datetime(2023, 10, 12, 12, 0, 35, tzinfo=timezone.utc),
+            start_time=datetime(2023, 10, 12, 12, 0, 0, tzinfo=UTC),
+            end_time=datetime(2023, 10, 12, 12, 0, 35, tzinfo=UTC),
             nmap_version="7.94",
             command_args=["-sS", "-sV", "--top-ports", "100", "-T4", "--open"],
             exit_code=0,
@@ -125,9 +124,7 @@ class TestScanParseStorePipeline:
         # PostgreSQL
         assert 5432 in ports
 
-    def test_empty_scan_pipeline(
-        self, integration_db: str, empty_scan_xml: str
-    ) -> None:
+    def test_empty_scan_pipeline(self, integration_db: str, empty_scan_xml: str) -> None:
         """Test pipeline with a host-down scan (no services)."""
         scan_result = ScanResult(
             scan_id="integration-empty-001",
@@ -135,14 +132,14 @@ class TestScanParseStorePipeline:
             profile="quick",
             status="completed",
             xml_output=empty_scan_xml,
-            start_time=datetime(2023, 10, 12, 12, 0, 0, tzinfo=timezone.utc),
-            end_time=datetime(2023, 10, 12, 12, 0, 6, tzinfo=timezone.utc),
+            start_time=datetime(2023, 10, 12, 12, 0, 0, tzinfo=UTC),
+            end_time=datetime(2023, 10, 12, 12, 0, 6, tzinfo=UTC),
             exit_code=0,
         )
         save_scan(scan_result)
 
         parsed = parse_nmap_xml(empty_scan_xml)
-        summary = save_parsed_scan("integration-empty-001", parsed)
+        save_parsed_scan("integration-empty-001", parsed)
 
         # Host was scanned but was down — still stored
         scan = get_scan("integration-empty-001")
@@ -160,8 +157,8 @@ class TestScanParseStorePipeline:
             profile="quick",
             status="failed",
             error_message="Host seems down",
-            start_time=datetime(2023, 10, 12, 12, 0, 0, tzinfo=timezone.utc),
-            end_time=datetime(2023, 10, 12, 12, 0, 5, tzinfo=timezone.utc),
+            start_time=datetime(2023, 10, 12, 12, 0, 0, tzinfo=UTC),
+            end_time=datetime(2023, 10, 12, 12, 0, 5, tzinfo=UTC),
             exit_code=1,
         )
         save_scan(scan_result)
@@ -171,9 +168,7 @@ class TestScanParseStorePipeline:
         assert scan["status"] == "failed"
         assert scan["error_message"] == "Host seems down"
 
-    def test_multiple_scans_independent(
-        self, integration_db: str, metasploitable_xml: str
-    ) -> None:
+    def test_multiple_scans_independent(self, integration_db: str, metasploitable_xml: str) -> None:
         """Verify two scans don't pollute each other's data."""
         for i in range(2):
             scan_id = f"multi-{i}"
@@ -182,7 +177,7 @@ class TestScanParseStorePipeline:
                 target="192.168.56.101",
                 profile="quick",
                 status="completed",
-                start_time=datetime(2023, 10, 12, 12, 0, 0, tzinfo=timezone.utc),
+                start_time=datetime(2023, 10, 12, 12, 0, 0, tzinfo=UTC),
                 exit_code=0,
             )
             save_scan(scan_result)

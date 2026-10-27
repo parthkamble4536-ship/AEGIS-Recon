@@ -1,0 +1,41 @@
+services:
+  aegis-recon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: aegis-recon:latest
+    container_name: aegis-recon
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persistent SQLite database storage across container recreations
+      - aegis-data:/app/data
+      # Target allowlist mounted directly so user can update scope without image rebuild
+      - ./config/allowlist.yaml:/app/config/allowlist.yaml:ro
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - DATABASE_PATH=/app/data/aegis_recon.db
+      - ALLOWLIST_PATH=/app/config/allowlist.yaml
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - aegis-net
+
+volumes:
+  aegis-data:
+    name: aegis-recon-data
+
+networks:
+  aegis-net:
+    name: aegis-recon-net
+    driver: bridge
+

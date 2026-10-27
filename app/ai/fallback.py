@@ -53,8 +53,8 @@ def generate_deterministic_analysis(
     # Categorize findings
     critical = [f for f in findings if f.get("severity") == "critical"]
     high = [f for f in findings if f.get("severity") == "high"]
-    medium = [f for f in findings if f.get("severity") == "medium"]
-    low = [f for f in findings if f.get("severity") in ("low", "informational")]
+    [f for f in findings if f.get("severity") == "medium"]
+    [f for f in findings if f.get("severity") in ("low", "informational")]
     kev_findings = [f for f in findings if f.get("is_kev")]
 
     high_confidence = [f for f in findings if f.get("confidence") == "high"]
@@ -99,7 +99,9 @@ def generate_deterministic_analysis(
         )
 
     if not risk_parts:
-        risk_parts.append("All findings are low or medium severity with no active exploitation signals.")
+        risk_parts.append(
+            "All findings are low or medium severity with no active exploitation signals."
+        )
 
     # Build critical findings list
     critical_finding_descs = []
@@ -119,31 +121,29 @@ def generate_deterministic_analysis(
     if kev_findings:
         recommendations.append(
             "URGENT: Patch or mitigate KEV-listed vulnerabilities immediately — "
-            + ", ".join(f.get("cve_id", "?") for f in kev_findings[:5]) + "."
+            + ", ".join(f.get("cve_id", "?") for f in kev_findings[:5])
+            + "."
         )
     if critical:
         recommendations.append(
             "Address critical-severity CVEs: "
-            + ", ".join(f.get("cve_id", "?") for f in critical[:5]) + "."
+            + ", ".join(f.get("cve_id", "?") for f in critical[:5])
+            + "."
         )
     if high:
-        recommendations.append(
-            f"Review and remediate {len(high)} high-severity findings."
-        )
+        recommendations.append(f"Review and remediate {len(high)} high-severity findings.")
     recommendations.append(
         "Verify all findings manually — automated matching may produce false positives."
     )
-    recommendations.append(
-        "Consider network segmentation for services with known vulnerabilities."
-    )
-    recommendations.append(
-        "Update services to latest stable versions where possible."
-    )
+    recommendations.append("Consider network segmentation for services with known vulnerabilities.")
+    recommendations.append("Update services to latest stable versions where possible.")
 
     # Confidence notes
     conf_parts = []
     if high_confidence:
-        conf_parts.append(f"{len(high_confidence)} findings have high confidence (exact CPE or version range match).")
+        conf_parts.append(
+            f"{len(high_confidence)} findings have high confidence (exact CPE or version range match)."
+        )
     if hypothesis_only:
         conf_parts.append(
             f"{len(hypothesis_only)} findings are hypotheses and require manual verification. "
@@ -164,7 +164,7 @@ def generate_deterministic_analysis(
             "This analysis is based on automated version-to-CVE matching. "
             "It cannot detect: configuration weaknesses, logic flaws, zero-day vulnerabilities, "
             "or compensating controls. Absence of findings does not imply security. "
-            f"Match accuracy depends on Nmap's version detection capability."
+            "Match accuracy depends on Nmap's version detection capability."
         ),
         "analysis_method": "deterministic",
     }

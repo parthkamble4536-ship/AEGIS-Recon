@@ -1,0 +1,47 @@
+# Git
+.git
+.gitignore
+
+# Environment and Secrets (CRITICAL: never bake credentials into image)
+.env
+.env.*
+!.env.example
+
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+
+# Testing & Coverage
+tests/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Local Database & Scans (persistent volumes handle these)
+data/*.db
+data/*.sqlite*
+scans/*.xml
+reports_output/
+
+# IDE & OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+

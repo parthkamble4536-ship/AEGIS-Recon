@@ -22,16 +22,19 @@ class AegisError(Exception):
 
 class ValidationError(AegisError):
     """Input validation failed (bad IP, port, profile, etc.)."""
+
     pass
 
 
 class AllowlistError(AegisError):
     """Target is not in the authorized allowlist."""
+
     pass
 
 
 class AllowlistLoadError(AegisError):
     """Could not load or parse the allowlist file."""
+
     pass
 
 
@@ -40,21 +43,25 @@ class AllowlistLoadError(AegisError):
 
 class ScannerError(AegisError):
     """General scanner failure."""
+
     pass
 
 
 class NmapNotFoundError(ScannerError):
     """Nmap binary not found on the system."""
+
     pass
 
 
 class ScanTimeoutError(ScannerError):
     """Scan exceeded the configured timeout."""
+
     pass
 
 
 class ScanExecutionError(ScannerError):
     """Nmap process returned a non-zero exit code."""
+
     pass
 
 
@@ -63,11 +70,13 @@ class ScanExecutionError(ScannerError):
 
 class ParserError(AegisError):
     """Failed to parse scanner output."""
+
     pass
 
 
 class MalformedXMLError(ParserError):
     """XML output is malformed or missing expected elements."""
+
     pass
 
 
@@ -76,16 +85,19 @@ class MalformedXMLError(ParserError):
 
 class IntelError(AegisError):
     """General intelligence module failure."""
+
     pass
 
 
 class IntelUnavailableError(IntelError):
     """External intelligence source is unreachable or rate-limited."""
+
     pass
 
 
 class IntelParseError(IntelError):
     """Failed to parse response from intelligence source."""
+
     pass
 
 
@@ -94,6 +106,7 @@ class IntelParseError(IntelError):
 
 class DatabaseError(AegisError):
     """Database operation failed."""
+
     pass
 
 
@@ -102,16 +115,19 @@ class DatabaseError(AegisError):
 
 class LLMError(AegisError):
     """General LLM analysis failure."""
+
     pass
 
 
 class LLMUnavailableError(LLMError):
     """LLM provider is unreachable or not configured."""
+
     pass
 
 
 class LLMValidationError(LLMError):
     """LLM output failed schema validation (hallucination, injection, etc.)."""
+
     pass
 
 
@@ -120,4 +136,5 @@ class LLMValidationError(LLMError):
 
 class ReportError(AegisError):
     """Report generation failed."""
+
     pass

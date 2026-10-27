@@ -6,9 +6,6 @@ Uses mocked HTTP responses — no real API calls.
 from __future__ import annotations
 
 import json
-import tempfile
-from datetime import datetime, timezone
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -27,22 +24,26 @@ def intel_db(tmp_path):
 
 # ── NVD Client Tests ────────────────────────────────────
 
+
 class TestNVDClient:
     """Test NVD API client (mocked)."""
 
     def test_normalize_cpe_legacy(self):
         from app.intel.nvd import _normalize_cpe
+
         result = _normalize_cpe("cpe:/a:apache:http_server:2.2.8")
         assert result.startswith("cpe:2.3:")
         assert "apache" in result
 
     def test_normalize_cpe_already_23(self):
         from app.intel.nvd import _normalize_cpe
+
         cpe = "cpe:2.3:a:apache:http_server:2.2.8:*:*:*:*:*:*:*"
         assert _normalize_cpe(cpe) == cpe
 
     def test_cvss_v2_severity(self):
         from app.intel.nvd import _cvss_v2_severity
+
         assert _cvss_v2_severity(9.0) == "high"
         assert _cvss_v2_severity(5.0) == "medium"
         assert _cvss_v2_severity(2.0) == "low"
@@ -54,20 +55,28 @@ class TestNVDClient:
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
-            "vulnerabilities": [{
-                "cve": {
-                    "id": "CVE-2021-44228",
-                    "descriptions": [{"lang": "en", "value": "Log4Shell RCE"}],
-                    "metrics": {
-                        "cvssMetricV31": [{
-                            "cvssData": {"baseScore": 10.0, "baseSeverity": "CRITICAL", "vectorString": "AV:N"}
-                        }]
-                    },
-                    "references": [{"url": "https://example.com"}],
-                    "configurations": [],
-                    "weaknesses": [],
+            "vulnerabilities": [
+                {
+                    "cve": {
+                        "id": "CVE-2021-44228",
+                        "descriptions": [{"lang": "en", "value": "Log4Shell RCE"}],
+                        "metrics": {
+                            "cvssMetricV31": [
+                                {
+                                    "cvssData": {
+                                        "baseScore": 10.0,
+                                        "baseSeverity": "CRITICAL",
+                                        "vectorString": "AV:N",
+                                    }
+                                }
+                            ]
+                        },
+                        "references": [{"url": "https://example.com"}],
+                        "configurations": [],
+                        "weaknesses": [],
+                    }
                 }
-            }]
+            ]
         }
         mock_client = MagicMock()
         mock_client.__enter__ = MagicMock(return_value=mock_client)
@@ -99,6 +108,7 @@ class TestNVDClient:
 
 # ── KEV Client Tests ────────────────────────────────────
 
+
 class TestKEVClient:
     """Test CISA KEV client (mocked)."""
 
@@ -110,17 +120,19 @@ class TestKEVClient:
             "catalogVersion": "2023.10.12",
             "dateReleased": "2023-10-12",
             "count": 1,
-            "vulnerabilities": [{
-                "cveID": "CVE-2021-44228",
-                "vendorProject": "Apache",
-                "product": "Log4j",
-                "vulnerabilityName": "Log4Shell",
-                "dateAdded": "2021-12-10",
-                "dueDate": "2021-12-24",
-                "shortDescription": "Apache Log4j2 RCE",
-                "requiredAction": "Apply updates per vendor instructions.",
-                "knownRansomwareCampaignUse": "Known",
-            }],
+            "vulnerabilities": [
+                {
+                    "cveID": "CVE-2021-44228",
+                    "vendorProject": "Apache",
+                    "product": "Log4j",
+                    "vulnerabilityName": "Log4Shell",
+                    "dateAdded": "2021-12-10",
+                    "dueDate": "2021-12-24",
+                    "shortDescription": "Apache Log4j2 RCE",
+                    "requiredAction": "Apply updates per vendor instructions.",
+                    "knownRansomwareCampaignUse": "Known",
+                }
+            ],
         }
 
         catalog = _parse_kev_catalog(data)
@@ -133,15 +145,18 @@ class TestKEVClient:
     def test_is_in_kev(self):
         from app.intel.kev import KEVCatalog, KEVEntry, is_in_kev
 
-        catalog = KEVCatalog(entries={
-            "CVE-2021-44228": KEVEntry(cve_id="CVE-2021-44228", due_date="2021-12-24"),
-        })
+        catalog = KEVCatalog(
+            entries={
+                "CVE-2021-44228": KEVEntry(cve_id="CVE-2021-44228", due_date="2021-12-24"),
+            }
+        )
 
         assert is_in_kev("CVE-2021-44228", catalog) is not None
         assert is_in_kev("CVE-9999-9999", catalog) is None
 
 
 # ── Cache Tests ─────────────────────────────────────────
+
 
 class TestIntelCache:
     """Test intelligence caching."""
@@ -155,6 +170,7 @@ class TestIntelCache:
 
     def test_cache_miss(self, intel_db):
         from app.intel.cache import cache_get
+
         assert cache_get("nonexistent:key") is None
 
     def test_cache_stale_fallback(self, intel_db):
@@ -169,12 +185,13 @@ class TestIntelCache:
     def test_cache_timestamp(self, intel_db):
         from app.intel.cache import cache_set, get_cache_timestamp
 
-        cache_set("test:ts", "nvd", '{}', ttl_seconds=3600)
+        cache_set("test:ts", "nvd", "{}", ttl_seconds=3600)
         ts = get_cache_timestamp("test:ts")
         assert ts is not None
 
 
 # ── Risk Scoring Tests ──────────────────────────────────
+
 
 class TestRiskScoring:
     """Test explainable risk engine."""
@@ -230,11 +247,16 @@ class TestRiskScoring:
     def test_scoring_deterministic(self):
         from app.risk.scoring import calculate_risk
 
-        kwargs = dict(
-            cvss_score=8.0, cvss_severity="high", confidence="high",
-            evidence_type="external_intelligence", is_kev=True,
-            service_name="ssh", port=22, match_method="cpe_range",
-        )
+        kwargs = {
+            "cvss_score": 8.0,
+            "cvss_severity": "high",
+            "confidence": "high",
+            "evidence_type": "external_intelligence",
+            "is_kev": True,
+            "service_name": "ssh",
+            "port": 22,
+            "match_method": "cpe_range",
+        }
 
         r1 = calculate_risk(**kwargs)
         r2 = calculate_risk(**kwargs)
@@ -245,8 +267,11 @@ class TestRiskScoring:
         from app.risk.scoring import calculate_risk
 
         result = calculate_risk(
-            cvss_score=5.0, confidence="medium",
-            evidence_type="hypothesis", service_name="http", port=80,
+            cvss_score=5.0,
+            confidence="medium",
+            evidence_type="hypothesis",
+            service_name="http",
+            port=80,
         )
 
         for factor in result.factors:
@@ -258,19 +283,22 @@ class TestRiskScoring:
 
 # ── AI Validator Tests ──────────────────────────────────
 
+
 class TestAIValidator:
     """Test LLM output validation."""
 
     def test_valid_output(self):
         from app.ai.validator import validate_ai_output
 
-        output = json.dumps({
-            "summary": "Test summary",
-            "risk_overview": "Overview",
-            "recommendations": ["Patch it"],
-            "limitations": "Limited",
-            "confidence_notes": "Notes",
-        })
+        output = json.dumps(
+            {
+                "summary": "Test summary",
+                "risk_overview": "Overview",
+                "recommendations": ["Patch it"],
+                "limitations": "Limited",
+                "confidence_notes": "Notes",
+            }
+        )
 
         result = validate_ai_output(output, {"CVE-2021-44228"})
         assert result["summary"] == "Test summary"
@@ -279,12 +307,14 @@ class TestAIValidator:
         from app.ai.validator import validate_ai_output
         from app.core.errors import LLMValidationError
 
-        output = json.dumps({
-            "summary": "CVE-9999-9999 is critical",
-            "risk_overview": "Overview",
-            "recommendations": [],
-            "limitations": "Limited",
-        })
+        output = json.dumps(
+            {
+                "summary": "CVE-9999-9999 is critical",
+                "risk_overview": "Overview",
+                "recommendations": [],
+                "limitations": "Limited",
+            }
+        )
 
         with pytest.raises(LLMValidationError, match="not in input"):
             validate_ai_output(output, {"CVE-2021-44228"})
@@ -316,6 +346,7 @@ class TestAIValidator:
 
 # ── Deterministic Fallback Tests ────────────────────────
 
+
 class TestFallback:
     """Test deterministic analysis."""
 
@@ -334,14 +365,32 @@ class TestFallback:
         from app.ai.fallback import generate_deterministic_analysis
 
         findings = [
-            {"cve_id": "CVE-2021-44228", "severity": "critical", "cvss_score": 10.0,
-             "confidence": "high", "evidence_type": "external_intelligence",
-             "is_kev": True, "service_name": "http", "port": 80,
-             "product": "Log4j", "version": "2.14.1", "priority_score": 95},
-            {"cve_id": "CVE-2022-1234", "severity": "medium", "cvss_score": 5.5,
-             "confidence": "low", "evidence_type": "hypothesis",
-             "is_kev": False, "service_name": "ssh", "port": 22,
-             "product": "OpenSSH", "version": "8.0", "priority_score": 30},
+            {
+                "cve_id": "CVE-2021-44228",
+                "severity": "critical",
+                "cvss_score": 10.0,
+                "confidence": "high",
+                "evidence_type": "external_intelligence",
+                "is_kev": True,
+                "service_name": "http",
+                "port": 80,
+                "product": "Log4j",
+                "version": "2.14.1",
+                "priority_score": 95,
+            },
+            {
+                "cve_id": "CVE-2022-1234",
+                "severity": "medium",
+                "cvss_score": 5.5,
+                "confidence": "low",
+                "evidence_type": "hypothesis",
+                "is_kev": False,
+                "service_name": "ssh",
+                "port": 22,
+                "product": "OpenSSH",
+                "version": "8.0",
+                "priority_score": 30,
+            },
         ]
 
         result = generate_deterministic_analysis(
@@ -349,12 +398,16 @@ class TestFallback:
         )
 
         assert "critical" in result["summary"].lower() or "2" in result["summary"]
-        assert "actively exploited" in result["risk_overview"].lower() or "KEV" in result["risk_overview"]
+        assert (
+            "actively exploited" in result["risk_overview"].lower()
+            or "KEV" in result["risk_overview"]
+        )
         assert result["analysis_method"] == "deterministic"
         assert len(result["critical_findings"]) > 0
 
 
 # ── Report Builder Tests ────────────────────────────────
+
 
 class TestReportBuilder:
     """Test report generation."""
@@ -363,7 +416,12 @@ class TestReportBuilder:
         from app.reports.builder import build_json_report
 
         report = build_json_report(
-            scan={"id": "s1", "target": "192.168.56.101", "profile": "quick", "status": "completed"},
+            scan={
+                "id": "s1",
+                "target": "192.168.56.101",
+                "profile": "quick",
+                "status": "completed",
+            },
             hosts=[{"ip": "192.168.56.101"}],
             services=[{"port": 80, "service_name": "http"}],
             findings=[{"severity": "high", "cve_id": "CVE-2022-1234", "is_kev": False}],
@@ -378,11 +436,26 @@ class TestReportBuilder:
         from app.reports.builder import build_html_report
 
         html = build_html_report(
-            scan={"id": "s1", "target": "192.168.56.101", "profile": "quick", "status": "completed",
-                  "start_time": "2023-10-12", "end_time": "2023-10-12", "nmap_version": "7.94"},
+            scan={
+                "id": "s1",
+                "target": "192.168.56.101",
+                "profile": "quick",
+                "status": "completed",
+                "start_time": "2023-10-12",
+                "end_time": "2023-10-12",
+                "nmap_version": "7.94",
+            },
             hosts=[],
-            services=[{"port": 80, "service_name": "http", "protocol": "tcp",
-                       "ip": "192.168.56.101", "product": "Apache", "version": "2.2.8"}],
+            services=[
+                {
+                    "port": 80,
+                    "service_name": "http",
+                    "protocol": "tcp",
+                    "ip": "192.168.56.101",
+                    "product": "Apache",
+                    "version": "2.2.8",
+                }
+            ],
             findings=[],
         )
 
@@ -394,15 +467,29 @@ class TestReportBuilder:
         from app.reports.builder import build_html_report
 
         html = build_html_report(
-            scan={"id": "s1", "target": "192.168.56.101", "profile": "quick", "status": "completed",
-                  "start_time": "", "end_time": "", "nmap_version": ""},
+            scan={
+                "id": "s1",
+                "target": "192.168.56.101",
+                "profile": "quick",
+                "status": "completed",
+                "start_time": "",
+                "end_time": "",
+                "nmap_version": "",
+            },
             hosts=[],
-            services=[{"port": 80, "service_name": '<script>alert("xss")</script>',
-                       "protocol": "tcp", "ip": "192.168.56.101",
-                       "product": '<img onerror="alert(1)">', "version": "1.0"}],
+            services=[
+                {
+                    "port": 80,
+                    "service_name": '<script>alert("xss")</script>',
+                    "protocol": "tcp",
+                    "ip": "192.168.56.101",
+                    "product": '<img onerror="alert(1)">',
+                    "version": "1.0",
+                }
+            ],
             findings=[],
         )
 
         # Jinja2 autoescaping should prevent raw script tags
         assert '<script>alert("xss")</script>' not in html
-        assert '&lt;script&gt;' in html or 'alert' not in html.split('<style>')[0]
+        assert "&lt;script&gt;" in html or "alert" not in html.split("<style>")[0]

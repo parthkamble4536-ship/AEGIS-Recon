@@ -11,11 +11,12 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.config import get_settings
-from app.core.errors import IntelUnavailableError
+from app.core.auth import require_api_key
 from app.core.logging import get_logger
+from app.core.ratelimit import limit_api_rate, limit_scan_rate
 from app.db.repository import (
     get_finding,
     get_findings_for_scan,
@@ -23,8 +24,8 @@ from app.db.repository import (
     get_services_for_scan,
     save_finding,
 )
-from app.intel.kev import KEVCatalog, fetch_kev_catalog, parse_kev_from_cache
 from app.intel.cache import cache_get, cache_get_stale, cache_set
+from app.intel.kev import KEVCatalog, fetch_kev_catalog, parse_kev_from_cache
 from app.intel.matcher import match_service_cves
 from app.risk.scoring import calculate_risk
 
@@ -32,7 +33,7 @@ logger = get_logger(__name__)
 router = APIRouter()
 
 
-@router.get("/findings/{scan_id}")
+@router.get("/findings/{scan_id}", dependencies=[Depends(limit_api_rate)])
 async def get_scan_findings(scan_id: str) -> dict[str, Any]:
     """Get all findings for a scan."""
     scan = get_scan(scan_id)
@@ -43,7 +44,9 @@ async def get_scan_findings(scan_id: str) -> dict[str, Any]:
     return {"scan_id": scan_id, "findings": findings, "count": len(findings)}
 
 
-@router.post("/findings/{scan_id}/enrich")
+@router.post(
+    "/findings/{scan_id}/enrich", dependencies=[Depends(require_api_key), Depends(limit_scan_rate)]
+)
 async def enrich_scan(scan_id: str) -> dict[str, Any]:
     """
     Trigger CVE enrichment for a scan.
@@ -146,7 +149,7 @@ async def enrich_scan(scan_id: str) -> dict[str, Any]:
     }
 
 
-@router.get("/findings/detail/{finding_id}")
+@router.get("/findings/detail/{finding_id}", dependencies=[Depends(limit_api_rate)])
 async def get_finding_detail(finding_id: str) -> dict[str, Any]:
     """Get detailed information about a single finding."""
     finding = get_finding(finding_id)
@@ -164,34 +167,42 @@ def _load_kev_catalog(cache_ttl: int) -> KEVCatalog | None:
     if cached:
         try:
             return parse_kev_from_cache(cached)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("kev_cache_parse_failed", error=str(e))
 
     # Try live download
     try:
         catalog = fetch_kev_catalog()
         import json
+
         # Cache the raw data
-        cache_set(cache_key, "kev", json.dumps({
-            "title": catalog.title,
-            "catalogVersion": catalog.catalog_version,
-            "dateReleased": catalog.date_released,
-            "count": catalog.count,
-            "vulnerabilities": [
+        cache_set(
+            cache_key,
+            "kev",
+            json.dumps(
                 {
-                    "cveID": e.cve_id,
-                    "vendorProject": e.vendor,
-                    "product": e.product,
-                    "vulnerabilityName": e.vulnerability_name,
-                    "dateAdded": e.date_added,
-                    "dueDate": e.due_date,
-                    "shortDescription": e.short_description,
-                    "requiredAction": e.required_action,
-                    "knownRansomwareCampaignUse": e.known_ransomware_use,
+                    "title": catalog.title,
+                    "catalogVersion": catalog.catalog_version,
+                    "dateReleased": catalog.date_released,
+                    "count": catalog.count,
+                    "vulnerabilities": [
+                        {
+                            "cveID": e.cve_id,
+                            "vendorProject": e.vendor,
+                            "product": e.product,
+                            "vulnerabilityName": e.vulnerability_name,
+                            "dateAdded": e.date_added,
+                            "dueDate": e.due_date,
+                            "shortDescription": e.short_description,
+                            "requiredAction": e.required_action,
+                            "knownRansomwareCampaignUse": e.known_ransomware_use,
+                        }
+                        for e in catalog.entries.values()
+                    ],
                 }
-                for e in catalog.entries.values()
-            ],
-        }), cache_ttl)
+            ),
+            cache_ttl,
+        )
         return catalog
     except Exception as e:
         logger.warning("kev_download_failed", error=str(e))
@@ -202,7 +213,7 @@ def _load_kev_catalog(cache_ttl: int) -> KEVCatalog | None:
         try:
             logger.warning("kev_using_stale_cache")
             return parse_kev_from_cache(stale_data)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("kev_stale_cache_parse_failed", error=str(e))
 
     return None

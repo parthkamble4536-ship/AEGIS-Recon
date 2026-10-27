@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -55,7 +55,7 @@ class KEVCatalog:
     date_released: str = ""
     count: int = 0
     entries: dict[str, KEVEntry] = field(default_factory=dict)  # Keyed by CVE ID
-    retrieved_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    retrieved_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 def fetch_kev_catalog(
@@ -140,7 +140,7 @@ def _parse_kev_catalog(data: dict[str, Any]) -> KEVCatalog:
         date_released=data.get("dateReleased", ""),
         count=data.get("count", len(entries)),
         entries=entries,
-        retrieved_at=datetime.now(timezone.utc),
+        retrieved_at=datetime.now(UTC),
     )
 
     logger.info(

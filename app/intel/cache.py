@@ -13,8 +13,7 @@ Design:
 
 from __future__ import annotations
 
-import json
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 
 from app.core.logging import get_logger
 from app.db.database import get_db
@@ -32,7 +31,7 @@ def cache_get(cache_key: str) -> str | None:
     Returns:
         Cached JSON string, or None if not found or expired.
     """
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
 
     with get_db() as conn:
         row = conn.execute(
@@ -85,7 +84,7 @@ def cache_set(
         response_data: JSON string to cache.
         ttl_seconds: Time-to-live in seconds.
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     expires = now + timedelta(seconds=ttl_seconds)
 
     with get_db() as conn:
@@ -113,7 +112,7 @@ def cache_clear_expired() -> int:
     Returns:
         Number of entries removed.
     """
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
 
     with get_db() as conn:
         cursor = conn.execute(

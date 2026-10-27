@@ -17,17 +17,15 @@ import subprocess
 import tempfile
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from app.core.errors import (
     NmapNotFoundError,
-    ScanExecutionError,
     ScannerError,
-    ScanTimeoutError,
 )
 from app.core.logging import get_logger
-from app.scanner.profiles import ScanProfile, get_profile
+from app.scanner.profiles import get_profile
 
 logger = get_logger(__name__)
 
@@ -42,7 +40,7 @@ class ScanResult:
     status: str  # "completed", "failed", "timeout"
     xml_output: str | None = None  # Raw XML content (on success)
     error_message: str | None = None  # Error description (on failure)
-    start_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    start_time: datetime = field(default_factory=lambda: datetime.now(UTC))
     end_time: datetime | None = None
     nmap_version: str | None = None
     command_args: list[str] = field(default_factory=list)  # For reproducibility (no secrets)
@@ -70,7 +68,7 @@ def check_nmap(nmap_path: str = "nmap") -> str:
         )
 
     try:
-        result = subprocess.run(
+        result = subprocess.run(  # nosec B603
             [resolved, "--version"],
             capture_output=True,
             text=True,
@@ -117,7 +115,7 @@ def run_scan(
         NmapNotFoundError: If Nmap is not available.
     """
     scan_id = str(uuid.uuid4())
-    start_time = datetime.now(timezone.utc)
+    start_time = datetime.now(UTC)
 
     # Resolve nmap binary
     resolved_nmap = shutil.which(nmap_path)
@@ -160,7 +158,7 @@ def run_scan(
 
     # Execute
     try:
-        proc = subprocess.run(
+        proc = subprocess.run(  # nosec B603
             cmd,
             capture_output=True,
             text=True,
@@ -168,7 +166,7 @@ def run_scan(
             shell=False,  # CRITICAL: Never use shell=True
         )
 
-        end_time = datetime.now(timezone.utc)
+        end_time = datetime.now(UTC)
 
         # Read XML output
         xml_content: str | None = None
@@ -196,7 +194,9 @@ def run_scan(
                 exit_code=0,
             )
         else:
-            error_msg = proc.stderr.strip() if proc.stderr else f"Nmap exited with code {proc.returncode}"
+            error_msg = (
+                proc.stderr.strip() if proc.stderr else f"Nmap exited with code {proc.returncode}"
+            )
             logger.warning(
                 "scan_non_zero_exit",
                 scan_id=scan_id,
@@ -218,7 +218,7 @@ def run_scan(
             )
 
     except subprocess.TimeoutExpired:
-        end_time = datetime.now(timezone.utc)
+        end_time = datetime.now(UTC)
         logger.error(
             "scan_timeout",
             scan_id=scan_id,
@@ -230,8 +230,8 @@ def run_scan(
         if xml_path.exists():
             try:
                 xml_content = xml_path.read_text(encoding="utf-8")
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("partial_xml_read_failed", error=str(e))
 
         return ScanResult(
             scan_id=scan_id,
@@ -268,5 +268,6 @@ def _extract_nmap_version(xml_content: str | None) -> str | None:
         return None
     # Quick extraction without full XML parsing
     import re
+
     match = re.search(r'scanner="nmap"[^>]*version="([^"]+)"', xml_content)
     return match.group(1) if match else None

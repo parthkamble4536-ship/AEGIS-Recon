@@ -125,16 +125,13 @@ def _extract_json(text: str) -> str:
     if text.startswith("```"):
         lines = text.split("\n")
         # Remove first line (```json) and last line (```)
-        if lines[-1].strip() == "```":
-            lines = lines[1:-1]
-        else:
-            lines = lines[1:]
+        lines = lines[1:-1] if lines[-1].strip() == "```" else lines[1:]
         text = "\n".join(lines).strip()
 
     # Find the JSON object boundaries
     start = text.find("{")
     end = text.rfind("}")
     if start != -1 and end != -1 and end > start:
-        return text[start:end + 1]
+        return text[start : end + 1]
 
     return text

@@ -53,14 +53,32 @@ target-version = "py312"
 line-length = 100
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "COM", "C4", "PT", "RET", "SIM"]
-ignore = ["S603", "S607"]  # subprocess calls are intentional and validated
+select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "C4", "PT", "RET", "SIM"]
+ignore = [
+    "S603", "S607",  # subprocess calls are validated
+    "S310", "S314",  # stdlib urllib and ElementTree are intentional
+    "E501",          # line length handled by formatter
+    "COM812",        # conflicts with formatter
+    "RET505", "RET506", "RET507", "RET508",  # stylistic else/elif after return
+    "SIM102", "SIM105", "SIM117",            # stylistic if/with/try simplifications
+    "S110",          # try-except-pass is intentional in fallbacks
+    "B904",          # raise ... from err chaining
+    "N817",          # well-known ET alias for ElementTree (defusedxml)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "S105", "S106"]
 
 [tool.mypy]
 python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -75,3 +93,4 @@ markers = [
 
 [tool.bandit]
 exclude_dirs = ["tests"]
+skips = ["B404"]  # subprocess import is required for nmap execution and strictly validated

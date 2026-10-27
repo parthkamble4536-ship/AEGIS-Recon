@@ -34,7 +34,10 @@ class TestCheckNmap:
             check_nmap("nmap")
 
     @patch("app.scanner.runner.shutil.which", return_value="/usr/bin/nmap")
-    @patch("app.scanner.runner.subprocess.run", side_effect=subprocess.TimeoutExpired(cmd="nmap", timeout=10))
+    @patch(
+        "app.scanner.runner.subprocess.run",
+        side_effect=subprocess.TimeoutExpired(cmd="nmap", timeout=10),
+    )
     def test_nmap_version_timeout(self, mock_run: MagicMock, mock_which: MagicMock) -> None:
         with pytest.raises(NmapNotFoundError, match="timed out"):
             check_nmap("nmap")
@@ -61,6 +64,7 @@ class TestRunScan:
             for i, arg in enumerate(cmd):
                 if arg == "-oX" and i + 1 < len(cmd):
                     from pathlib import Path
+
                     Path(cmd[i + 1]).write_text(xml_content)
                     break
             return subprocess.CompletedProcess(args=cmd, returncode=0, stdout="", stderr="")
@@ -141,7 +145,9 @@ class TestRunScan:
 
     @patch("app.scanner.runner.shutil.which", return_value="/usr/bin/nmap")
     @patch("app.scanner.runner.subprocess.run")
-    def test_shell_false_enforced(self, mock_run: MagicMock, mock_which: MagicMock, tmp_path) -> None:
+    def test_shell_false_enforced(
+        self, mock_run: MagicMock, mock_which: MagicMock, tmp_path
+    ) -> None:
         """Verify subprocess.run is called with shell=False."""
         mock_run.return_value = subprocess.CompletedProcess(
             args=[], returncode=0, stdout="", stderr=""
@@ -161,7 +167,9 @@ class TestRunScan:
 
     @patch("app.scanner.runner.shutil.which", return_value="/usr/bin/nmap")
     @patch("app.scanner.runner.subprocess.run")
-    def test_target_is_last_argument(self, mock_run: MagicMock, mock_which: MagicMock, tmp_path) -> None:
+    def test_target_is_last_argument(
+        self, mock_run: MagicMock, mock_which: MagicMock, tmp_path
+    ) -> None:
         """Target must always be the last argument to nmap."""
         mock_run.return_value = subprocess.CompletedProcess(
             args=[], returncode=0, stdout="", stderr=""
@@ -180,7 +188,9 @@ class TestRunScan:
 
     @patch("app.scanner.runner.shutil.which", return_value="/usr/bin/nmap")
     @patch("app.scanner.runner.subprocess.run")
-    def test_port_override_in_command(self, mock_run: MagicMock, mock_which: MagicMock, tmp_path) -> None:
+    def test_port_override_in_command(
+        self, mock_run: MagicMock, mock_which: MagicMock, tmp_path
+    ) -> None:
         mock_run.return_value = subprocess.CompletedProcess(
             args=[], returncode=0, stdout="", stderr=""
         )

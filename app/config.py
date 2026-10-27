@@ -50,7 +50,9 @@ class Settings(BaseSettings):
 
     # ── AI / LLM ─────────────────────────────────────────
     ai_enabled: bool = False
-    ai_provider: Literal["anthropic", "none"] = "none"
+    ai_provider: Literal["gemini", "anthropic", "none"] = "none"
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-1.5-flash"
     anthropic_api_key: str = ""
     ai_max_tokens: int = Field(default=1024, ge=64, le=4096)
     ai_temperature: float = Field(default=0.2, ge=0.0, le=1.0)
@@ -58,6 +60,11 @@ class Settings(BaseSettings):
     # ── API Server ───────────────────────────────────────
     api_host: str = "127.0.0.1"
     api_port: int = Field(default=8000, ge=1024, le=65535)
+
+    # ── Authentication ───────────────────────────────────
+    # Leave blank to disable auth (local dev mode).
+    # Set a strong random value in production (e.g., `python -c "import secrets; print(secrets.token_hex(32))"`)
+    api_key: str = ""
 
     @field_validator("nmap_path")
     @classmethod
