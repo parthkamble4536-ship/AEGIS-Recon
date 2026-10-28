@@ -13,17 +13,22 @@
 
 targets:
   - ip: "192.168.56.101"
-    description: "Metasploitable 2 — primary lab target"
+    description: "Metasploitable 2 — Linux 2.6 legacy baseline"
 
   - ip: "192.168.56.102"
-    description: "Secondary lab target (if configured)"
+    description: "Metasploitable 3 — Windows Server 2016 enterprise stack"
+
+  - ip: "192.168.56.103"
+    description: "Metasploitable 3 — Ubuntu 14.04 Linux web/middleware stack"
+
+  - ip: "192.168.56.104"
+    description: "VulnHub Kioptrix Level 1 — Real-world CTF / hardened target"
+
+  - cidr: "192.168.56.0/24"
+    description: "Host-only lab network subnet (all lab VMs)"
 
   - ip: "127.0.0.1"
     description: "Localhost loopback for local testing"
-
-  # Uncomment to allow an entire lab subnet:
-  # - cidr: "192.168.56.0/24"
-  #   description: "Host-only lab network"
 
 # Scan profiles allowed (restrict which profiles users can run)
 allowed_profiles:
