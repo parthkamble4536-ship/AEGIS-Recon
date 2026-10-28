@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +8,12 @@
     <meta name="description" content="Evidence-based reconnaissance and vulnerability intelligence dashboard">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="style.css?v=2">
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar" id="navbar">
@@ -115,13 +118,14 @@
                 <form id="scan-form" class="card glass">
                     <div class="form-notice">
                         <span class="notice-icon">⚠️</span>
-                        <span>Only targets in your allowlist can be scanned. Configure <code>config/allowlist.yaml</code> before scanning.</span>
+                        <span>Only targets in your allowlist can be scanned. Configure
+                            <code>config/allowlist.yaml</code> before scanning.</span>
                     </div>
 
                     <div class="form-group">
                         <label for="scan-target">Target</label>
                         <input type="text" id="scan-target" placeholder="e.g., 192.168.56.101" required
-                               autocomplete="off" spellcheck="false">
+                            autocomplete="off" spellcheck="false">
                         <span class="form-hint">IP address, CIDR range, or hostname from your allowlist</span>
                     </div>
 
@@ -162,8 +166,10 @@
                     <h3 id="scan-result-title">Scan Complete</h3>
                     <p id="scan-result-message"></p>
                     <div class="form-actions" style="margin-top: 1rem;">
-                        <button class="btn btn-primary" id="btn-enrich" onclick="enrichScan()">Enrich with CVE Data</button>
-                        <button class="btn btn-secondary" id="btn-view-results" onclick="viewScanResults()">View Results</button>
+                        <button class="btn btn-primary" id="btn-enrich" onclick="enrichScan()">Enrich with CVE
+                            Data</button>
+                        <button class="btn btn-secondary" id="btn-view-results" onclick="viewScanResults()">View
+                            Results</button>
                     </div>
                 </div>
             </div>
@@ -198,7 +204,8 @@
         <section class="view" id="view-ai">
             <div class="view-header">
                 <h1>🤖 AI Security Analysis</h1>
-                <p class="view-subtitle">Executive vulnerability risk assessment and actionable remediation powered by Google Gemini AI</p>
+                <p class="view-subtitle">Executive vulnerability risk assessment and actionable remediation powered by
+                    Google Gemini AI</p>
             </div>
 
             <div class="card glass">
@@ -214,7 +221,8 @@
                             <span class="btn-text">🤖 Run AI Analysis</span>
                             <span class="btn-spinner hidden" id="ai-spinner">⏳</span>
                         </button>
-                        <button class="btn btn-secondary" onclick="viewSelectedScanDetail()">🔍 View Scan Details</button>
+                        <button class="btn btn-secondary" onclick="viewSelectedScanDetail()">🔍 View Scan
+                            Details</button>
                     </div>
                 </div>
             </div>
@@ -226,7 +234,8 @@
                     <span class="badge badge-confidence" id="ai-provider-badge">Gemini 1.5</span>
                 </div>
                 <div id="ai-view-container">
-                    <p style="color:var(--text-muted)">Select a scan above and click "Run AI Analysis" to synthesize findings, assess exploitability risks, and generate customized remediation guidance.</p>
+                    <p style="color:var(--text-muted)">Select a scan above and click "Run AI Analysis" to synthesize
+                        findings, assess exploitability risks, and generate customized remediation guidance.</p>
                 </div>
             </div>
         </section>
@@ -251,7 +260,14 @@
                 <div class="table-container">
                     <table>
                         <thead>
-                            <tr><th>IP</th><th>Port</th><th>Service</th><th>Product</th><th>Version</th><th>CPE</th></tr>
+                            <tr>
+                                <th>IP</th>
+                                <th>Port</th>
+                                <th>Service</th>
+                                <th>Product</th>
+                                <th>Version</th>
+                                <th>CPE</th>
+                            </tr>
                         </thead>
                         <tbody id="detail-services-body"></tbody>
                     </table>
@@ -283,4 +299,5 @@
 
     <script src="app.js?v=2"></script>
 </body>
+
 </html>
