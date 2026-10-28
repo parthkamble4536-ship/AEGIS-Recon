@@ -12,6 +12,7 @@ Security design:
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import tempfile
@@ -47,6 +48,22 @@ class ScanResult:
     exit_code: int | None = None
 
 
+def _resolve_nmap(nmap_path: str = "nmap") -> str | None:
+    """Resolve nmap binary path, checking PATH and Windows default locations."""
+    resolved = shutil.which(nmap_path)
+    if resolved:
+        return resolved
+    if nmap_path == "nmap" and os.name == "nt":
+        for candidate in (
+            r"C:\Program Files (x86)\Nmap\nmap.exe",
+            r"C:\Program Files\Nmap\nmap.exe",
+        ):
+            cand_resolved = shutil.which(candidate)
+            if cand_resolved:
+                return cand_resolved
+    return None
+
+
 def check_nmap(nmap_path: str = "nmap") -> str:
     """
     Verify that Nmap is installed and return its version.
@@ -60,7 +77,7 @@ def check_nmap(nmap_path: str = "nmap") -> str:
     Raises:
         NmapNotFoundError: If Nmap is not found or not executable.
     """
-    resolved = shutil.which(nmap_path)
+    resolved = _resolve_nmap(nmap_path)
     if resolved is None:
         raise NmapNotFoundError(
             f"Nmap not found at '{nmap_path}'.",
@@ -118,7 +135,7 @@ def run_scan(
     start_time = datetime.now(UTC)
 
     # Resolve nmap binary
-    resolved_nmap = shutil.which(nmap_path)
+    resolved_nmap = _resolve_nmap(nmap_path)
     if resolved_nmap is None:
         raise NmapNotFoundError(f"Nmap not found at '{nmap_path}'.")
 

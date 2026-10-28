@@ -23,6 +23,7 @@
             <button class="nav-link active" data-view="dashboard" id="nav-dashboard">Dashboard</button>
             <button class="nav-link" data-view="scan" id="nav-scan">New Scan</button>
             <button class="nav-link" data-view="history" id="nav-history">History</button>
+            <button class="nav-link" data-view="ai" id="nav-ai">🤖 AI Analysis</button>
         </div>
         <div class="nav-status">
             <span class="status-dot" id="api-status-dot"></span>
@@ -193,12 +194,50 @@
             </div>
         </section>
 
+        <!-- AI Analysis Dedicated View -->
+        <section class="view" id="view-ai">
+            <div class="view-header">
+                <h1>🤖 AI Security Analysis</h1>
+                <p class="view-subtitle">Executive vulnerability risk assessment and actionable remediation powered by Google Gemini AI</p>
+            </div>
+
+            <div class="card glass">
+                <div class="form-row" style="align-items: flex-end;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="ai-scan-select">Select Target Assessment</label>
+                        <select id="ai-scan-select" onchange="onAIScanSelected()">
+                            <option value="">Loading scans...</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: flex-end; padding-bottom: 0.2rem;">
+                        <button class="btn btn-primary" id="btn-run-ai" onclick="runAIAnalysisFromSelector()">
+                            <span class="btn-text">🤖 Run AI Analysis</span>
+                            <span class="btn-spinner hidden" id="ai-spinner">⏳</span>
+                        </button>
+                        <button class="btn btn-secondary" onclick="viewSelectedScanDetail()">🔍 View Scan Details</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Output Card -->
+            <div class="card glass" id="ai-results-card">
+                <div class="card-header">
+                    <h3 id="ai-results-title">AI Assessment Report</h3>
+                    <span class="badge badge-confidence" id="ai-provider-badge">Gemini 1.5</span>
+                </div>
+                <div id="ai-view-container">
+                    <p style="color:var(--text-muted)">Select a scan above and click "Run AI Analysis" to synthesize findings, assess exploitability risks, and generate customized remediation guidance.</p>
+                </div>
+            </div>
+        </section>
+
         <!-- Scan Detail View -->
         <section class="view" id="view-detail">
             <div class="view-header">
                 <h1 id="detail-title">Scan Details</h1>
                 <div class="view-actions">
                     <button class="btn btn-sm" onclick="enrichCurrentScan()">🔍 Enrich CVEs</button>
+                    <button class="btn btn-sm btn-primary" onclick="runAIAnalysisNow()">🤖 AI Analysis (Gemini)</button>
                     <button class="btn btn-sm" onclick="downloadJSON()">📄 JSON Report</button>
                     <button class="btn btn-sm" onclick="downloadHTML()">📊 HTML Report</button>
                 </div>
@@ -228,7 +267,10 @@
 
             <!-- Analysis -->
             <div class="card glass" id="analysis-card">
-                <h3>Analysis Summary</h3>
+                <div class="card-header">
+                    <h3>AI & Security Analysis</h3>
+                    <button class="btn btn-sm btn-primary" onclick="runAIAnalysisNow()">🤖 Run AI Analysis</button>
+                </div>
                 <div id="analysis-container"></div>
             </div>
         </section>

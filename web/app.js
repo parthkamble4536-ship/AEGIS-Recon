@@ -41,6 +41,7 @@ function navigateTo(viewName) {
     // Load data for the view
     if (viewName === 'dashboard') loadDashboard();
     if (viewName === 'history') loadHistory();
+    if (viewName === 'ai') loadAIView();
 }
 
 // ─── Health Check ──────────────────────────────────────
@@ -127,6 +128,7 @@ function renderRecentScans(scans) {
             <td>${formatTime(s.start_time)}</td>
             <td>
                 <button class="btn btn-sm" onclick="viewScanDetail('${s.id}')">View</button>
+                <button class="btn btn-sm btn-primary" onclick="openAIForScan('${s.id}')">🤖 AI</button>
             </td>
         </tr>
     `).join('');
@@ -331,6 +333,7 @@ async function loadHistory() {
                 <td>${formatTime(s.start_time)}</td>
                 <td>
                     <button class="btn btn-sm" onclick="viewScanDetail('${s.id}')">Details</button>
+                    <button class="btn btn-sm btn-primary" onclick="openAIForScan('${s.id}')">🤖 AI</button>
                 </td>
             </tr>
         `).join('');
@@ -414,26 +417,35 @@ function renderFindings(findings) {
     `).join('');
 }
 
-function renderAnalysis(analysis) {
-    const container = document.getElementById('analysis-container');
+function renderAnalysisHTML(analysis) {
     if (!analysis || !analysis.summary) {
-        container.innerHTML = '<p style="color:var(--text-muted)">No analysis available. Enrich the scan first.</p>';
-        return;
+        return '<p style="color:var(--text-muted)">No analysis available. Click "Enrich CVEs" or run AI analysis.</p>';
     }
 
-    container.innerHTML = `
+    const method = analysis.analysis_method || 'deterministic';
+    const isAi = method.toLowerCase().includes('gemini') || method.toLowerCase().includes('ai');
+    const methodBadge = isAi
+        ? `<span class="badge badge-confidence">🤖 ${escapeHtml(method)}</span>`
+        : `<span class="badge badge-informational">⚙️ ${escapeHtml(method)}</span>`;
+
+    return `
+        <div style="margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between;">
+            <div style="font-size: 0.8rem; color: var(--text-muted);">
+                Engine: ${methodBadge}
+            </div>
+        </div>
         <div class="analysis-section">
-            <h4>Summary</h4>
+            <h4>Executive Summary</h4>
             <p>${escapeHtml(analysis.summary)}</p>
         </div>
         ${analysis.risk_overview ? `
         <div class="analysis-section">
-            <h4>Risk Overview</h4>
+            <h4>Risk Overview & Exploitability</h4>
             <p>${escapeHtml(analysis.risk_overview)}</p>
         </div>` : ''}
         ${analysis.recommendations && analysis.recommendations.length ? `
         <div class="analysis-section">
-            <h4>Recommendations</h4>
+            <h4>Actionable Recommendations</h4>
             <ol>${analysis.recommendations.map(r => `<li>${escapeHtml(r)}</li>`).join('')}</ol>
         </div>` : ''}
         ${analysis.confidence_notes ? `
@@ -443,13 +455,146 @@ function renderAnalysis(analysis) {
         </div>` : ''}
         ${analysis.limitations ? `
         <div class="analysis-section">
-            <h4>Limitations</h4>
+            <h4>Assessment Limitations</h4>
             <p>${escapeHtml(analysis.limitations)}</p>
         </div>` : ''}
-        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
-            Analysis method: ${analysis.analysis_method || 'unknown'}
-        </div>
     `;
+}
+
+function renderAnalysis(analysis) {
+    const container = document.getElementById('analysis-container');
+    if (!container) return;
+    container.innerHTML = renderAnalysisHTML(analysis);
+}
+
+// ─── AI Analysis View ──────────────────────────────────
+
+let allScansList = [];
+
+async function loadAIView() {
+    const select = document.getElementById('ai-scan-select');
+    if (!select) return;
+    select.innerHTML = '<option value="">Loading scans...</option>';
+
+    try {
+        const res = await fetch(`${API_BASE}/scans?limit=50`);
+        const data = await res.json();
+        allScansList = data.scans || [];
+
+        if (allScansList.length === 0) {
+            select.innerHTML = '<option value="">No scans available. Run a scan first.</option>';
+            document.getElementById('ai-view-container').innerHTML =
+                '<p style="color:var(--text-muted)">No scans found. Please launch a scan to perform AI analysis.</p>';
+            return;
+        }
+
+        select.innerHTML = allScansList.map(s => `
+            <option value="${s.id}" ${s.id === currentScanId ? 'selected' : ''}>
+                ${escapeHtml(s.target)} (${escapeHtml(s.profile)}) — ${formatTime(s.start_time)}
+            </option>
+        `).join('');
+
+        const targetScanId = currentScanId || (allScansList[0] && allScansList[0].id);
+        if (targetScanId) {
+            select.value = targetScanId;
+            currentScanId = targetScanId;
+            fetchAndRenderAIAnalysis(targetScanId);
+        }
+    } catch (e) {
+        select.innerHTML = '<option value="">Failed to load scans</option>';
+        showToast('Failed to load scans for AI view.', 'error');
+    }
+}
+
+function onAIScanSelected() {
+    const select = document.getElementById('ai-scan-select');
+    if (select && select.value) {
+        currentScanId = select.value;
+        fetchAndRenderAIAnalysis(select.value);
+    }
+}
+
+async function fetchAndRenderAIAnalysis(scanId) {
+    const container = document.getElementById('ai-view-container');
+    const badge = document.getElementById('ai-provider-badge');
+    if (!container) return;
+
+    container.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--accent);">⏳ Generating AI security intelligence...</div>';
+
+    try {
+        const res = await fetch(`${API_BASE}/reports/${scanId}/analysis`);
+        const data = await res.json();
+        const analysis = data.analysis || {};
+
+        if (badge) {
+            badge.textContent = analysis.analysis_method || 'AI Analysis';
+        }
+
+        container.innerHTML = renderAnalysisHTML(analysis);
+    } catch (e) {
+        container.innerHTML = `<p style="color:var(--error)">Error fetching analysis: ${escapeHtml(e.message)}</p>`;
+    }
+}
+
+async function runAIAnalysisFromSelector() {
+    const select = document.getElementById('ai-scan-select');
+    const scanId = select ? select.value : currentScanId;
+    if (!scanId) {
+        showToast('Please select a scan target first.', 'warning');
+        return;
+    }
+
+    const spinner = document.getElementById('ai-spinner');
+    if (spinner) spinner.classList.remove('hidden');
+
+    showToast('Running AI Analysis with Gemini...', 'info');
+    await fetchAndRenderAIAnalysis(scanId);
+
+    if (spinner) spinner.classList.add('hidden');
+    showToast('AI Analysis generated successfully.', 'success');
+}
+
+function openAIForScan(scanId) {
+    currentScanId = scanId;
+    navigateTo('ai');
+    const select = document.getElementById('ai-scan-select');
+    if (select && select.value !== scanId) {
+        select.value = scanId;
+    }
+    fetchAndRenderAIAnalysis(scanId);
+}
+
+function viewSelectedScanDetail() {
+    const select = document.getElementById('ai-scan-select');
+    if (select && select.value) {
+        viewScanDetail(select.value);
+    } else if (currentScanId) {
+        viewScanDetail(currentScanId);
+    } else {
+        showToast('No scan selected.', 'warning');
+    }
+}
+
+async function runAIAnalysisNow() {
+    if (!currentScanId) {
+        showToast('No scan selected.', 'warning');
+        return;
+    }
+    showToast('Running AI analysis with Gemini...', 'info');
+    const container = document.getElementById('analysis-container');
+    if (container) {
+        container.innerHTML = '<div style="padding: 1rem; color: var(--accent);">⏳ Generating AI analysis...</div>';
+    }
+    try {
+        const res = await fetch(`${API_BASE}/reports/${currentScanId}/analysis`);
+        const data = await res.json();
+        renderAnalysis(data.analysis || {});
+        showToast('AI analysis completed.', 'success');
+        const card = document.getElementById('analysis-card');
+        if (card) card.scrollIntoView({ behavior: 'smooth' });
+    } catch (e) {
+        showToast(`AI analysis failed: ${e.message}`, 'error');
+    }
 }
 
 // ─── Report Downloads ──────────────────────────────────

@@ -7,11 +7,24 @@ Secrets never have default values — they must be explicitly set.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Literal
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def _detect_default_nmap_path() -> str:
+    """Auto-detect Nmap on Windows if installed in default directories."""
+    if os.name == "nt":
+        for path in (
+            r"C:\Program Files (x86)\Nmap\nmap.exe",
+            r"C:\Program Files\Nmap\nmap.exe",
+        ):
+            if os.path.isfile(path):
+                return path
+    return "nmap"
 
 
 class Settings(BaseSettings):
@@ -28,7 +41,7 @@ class Settings(BaseSettings):
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
 
     # ── Nmap ─────────────────────────────────────────────
-    nmap_path: str = "nmap"
+    nmap_path: str = Field(default_factory=_detect_default_nmap_path)
     nmap_timeout: int = Field(default=300, ge=10, le=3600)
 
     # ── Database ─────────────────────────────────────────
@@ -73,7 +86,7 @@ class Settings(BaseSettings):
         if not v.strip():
             raise ValueError("nmap_path must not be empty")
         # Block shell injection in the configured nmap path itself
-        dangerous = set(";|&`$(){}[]!#")
+        dangerous = set(";|<>&`$\n\r")
         if any(c in v for c in dangerous):
             raise ValueError("nmap_path contains dangerous characters")
         return v.strip()
