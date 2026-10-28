@@ -47,7 +47,8 @@ def cache_get(cache_key: str) -> str | None:
         return None
 
     logger.debug("cache_hit", key=cache_key, fetched_at=row["fetched_at"])
-    return row["response_data"]
+    val = row["response_data"]
+    return str(val) if val is not None else None
 
 
 def cache_get_stale(cache_key: str) -> tuple[str | None, str | None]:

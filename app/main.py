@@ -14,6 +14,7 @@ from __future__ import annotations
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -66,8 +67,8 @@ def create_app() -> FastAPI:
     class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         """Add OWASP-recommended security headers to every response."""
 
-        async def dispatch(self, request: Request, call_next: object) -> StarletteResponse:
-            response: StarletteResponse = await call_next(request)  # type: ignore[arg-type]
+        async def dispatch(self, request: Request, call_next: Any) -> StarletteResponse:
+            response: StarletteResponse = await call_next(request)
             response.headers["X-Content-Type-Options"] = "nosniff"
             response.headers["X-Frame-Options"] = "DENY"
             response.headers["X-XSS-Protection"] = (

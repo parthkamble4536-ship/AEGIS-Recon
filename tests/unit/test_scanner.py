@@ -100,6 +100,7 @@ class TestRunScan:
         )
 
         assert result.status == "timeout"
+        assert result.error_message is not None
         assert "timed out" in result.error_message
 
     @patch("app.scanner.runner.shutil.which", return_value="/usr/bin/nmap")
@@ -119,6 +120,7 @@ class TestRunScan:
 
         assert result.status == "failed"
         assert result.exit_code == 1
+        assert result.error_message is not None
         assert "Host seems down" in result.error_message
 
     @patch("app.scanner.runner.shutil.which", return_value=None)

@@ -264,8 +264,9 @@ def _check_allowlist(target: str, target_type: str, allowlist: Allowlist) -> Non
                 try:
                     target_net = ipaddress.ip_network(target, strict=False)
                     if (
-                        target_net.network_address >= entry.network.network_address
-                        and target_net.broadcast_address <= entry.network.broadcast_address
+                        target_net.version == entry.network.version
+                        and target_net.network_address >= entry.network.network_address  # type: ignore[operator]
+                        and target_net.broadcast_address <= entry.network.broadcast_address  # type: ignore[operator]
                     ):
                         return
                 except ValueError:

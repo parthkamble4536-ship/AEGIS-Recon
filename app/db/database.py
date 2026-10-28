@@ -78,7 +78,7 @@ def get_connection() -> sqlite3.Connection:
 
     # Return existing thread-local connection if available
     conn = getattr(_local, "connection", None)
-    if conn is not None:
+    if isinstance(conn, sqlite3.Connection):
         try:
             conn.execute("SELECT 1")
             return conn

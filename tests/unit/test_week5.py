@@ -96,7 +96,7 @@ class TestDockerComposeValidation:
     def compose_config(self) -> dict:
         path = PROJECT_ROOT / "docker-compose.yml"
         assert path.exists(), "docker-compose.yml must exist at project root"
-        return yaml.safe_load(path.read_text(encoding="utf-8"))
+        return yaml.safe_load(path.read_text(encoding="utf-8"))  # type: ignore[no-any-return]
 
     def test_service_defined(self):
         config = self.compose_config

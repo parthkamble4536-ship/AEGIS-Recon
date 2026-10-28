@@ -8,6 +8,7 @@ Each function does one thing and returns typed results.
 from __future__ import annotations
 
 import json
+import sqlite3
 import uuid
 
 from app.core.logging import get_logger
@@ -139,7 +140,7 @@ def save_host(scan_id: str, host: ParsedHost) -> str:
     return host_id
 
 
-def save_service(conn, host_id: str, scan_id: str, service: ParsedService) -> str:
+def save_service(conn: sqlite3.Connection, host_id: str, scan_id: str, service: ParsedService) -> str:
     """Save a single service (called within a transaction)."""
     service_id = str(uuid.uuid4())
     conn.execute(
@@ -217,7 +218,7 @@ def save_finding(finding: dict) -> str:
     Returns:
         The finding ID.
     """
-    finding_id = finding.get("id", str(uuid.uuid4()))
+    finding_id = str(finding.get("id") or uuid.uuid4())
 
     with get_db() as conn:
         conn.execute(
