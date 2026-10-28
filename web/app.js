@@ -108,6 +108,34 @@ async function loadDashboard() {
     }
 }
 
+// ─── Target Label Helper ──────────────────────────────
+
+function getTargetLabel(ip, scanId) {
+    if (!ip) return '';
+    const cleanIp = String(ip).trim();
+    if (cleanIp === '192.168.56.101') return 'Metasploitable 2 (Linux 2.6)';
+    if (cleanIp === '192.168.56.102') return 'Metasploitable 3 (Windows Server 2016)';
+    if (cleanIp === '192.168.56.103') return 'Metasploitable 3 (Ubuntu 14.04 Linux)';
+    if (cleanIp === '192.168.56.104') return 'Kioptrix Level 1 (VulnHub CTF)';
+    if (cleanIp === '127.0.0.1' || cleanIp === 'localhost') return 'Local Host (Self-Scan)';
+
+    if (scanId) {
+        if (scanId.includes('metasploitable2')) return 'Metasploitable 2';
+        if (scanId.includes('metasploitable3-win')) return 'Metasploitable 3 (Win)';
+        if (scanId.includes('metasploitable3-linux')) return 'Metasploitable 3 (Linux)';
+        if (scanId.includes('kioptrix')) return 'Kioptrix Level 1';
+    }
+    return '';
+}
+
+function renderTargetCell(s) {
+    const label = getTargetLabel(s.target, s.id);
+    const badge = label
+        ? `<div style="font-size: 0.72rem; color: var(--accent); margin-top: 3px; font-weight: 500;">🖥️ ${escapeHtml(label)}</div>`
+        : '';
+    return `<strong>${escapeHtml(s.target)}</strong>${badge}`;
+}
+
 function renderRecentScans(scans) {
     const tbody = document.getElementById('recent-scans-body');
     const emptyMsg = document.getElementById('no-scans-msg');
@@ -121,7 +149,7 @@ function renderRecentScans(scans) {
     emptyMsg.classList.add('hidden');
     tbody.innerHTML = scans.map(s => `
         <tr>
-            <td><strong>${escapeHtml(s.target)}</strong></td>
+            <td>${renderTargetCell(s)}</td>
             <td>${escapeHtml(s.profile)}</td>
             <td><span class="badge badge-${s.status === 'completed' ? 'success' : 'failed'}">${s.status}</span></td>
             <td>${s.hosts_up || 0}</td>
@@ -326,7 +354,7 @@ async function loadHistory() {
         const tbody = document.getElementById('history-table-body');
         tbody.innerHTML = scans.map(s => `
             <tr>
-                <td><strong>${escapeHtml(s.target)}</strong></td>
+                <td>${renderTargetCell(s)}</td>
                 <td>${escapeHtml(s.profile)}</td>
                 <td><span class="badge badge-${s.status === 'completed' ? 'success' : 'failed'}">${s.status}</span></td>
                 <td>${s.hosts_up || 0}</td>
@@ -356,8 +384,10 @@ async function viewScanDetail(scanId) {
         const services = scanData.services || [];
         const isHostDown = scan.hosts_up === 0;
 
+        const label = getTargetLabel(scan.target, scan.id);
+        const titlePrefix = label ? `${label} — ` : '';
         document.getElementById('detail-title').textContent =
-            `Scan: ${scan.target || 'Target'} (${scan.profile || 'Profile'})`;
+            `Scan: ${titlePrefix}${scan.target || 'Target'} (${scan.profile || 'Profile'})`;
 
         // Host Status Notice
         const noticeEl = document.getElementById('scan-host-notice');
@@ -530,11 +560,15 @@ async function loadAIView() {
             return;
         }
 
-        select.innerHTML = allScansList.map(s => `
-            <option value="${s.id}" ${s.id === currentScanId ? 'selected' : ''}>
-                ${escapeHtml(s.target)} (${escapeHtml(s.profile)}) — ${formatTime(s.start_time)} [${s.hosts_up || 0} host up]
-            </option>
-        `).join('');
+        select.innerHTML = allScansList.map(s => {
+            const label = getTargetLabel(s.target, s.id);
+            const prefix = label ? `[${label}] ` : '';
+            return `
+                <option value="${s.id}" ${s.id === currentScanId ? 'selected' : ''}>
+                    ${prefix}${escapeHtml(s.target)} (${escapeHtml(s.profile)}) — ${formatTime(s.start_time)} [${s.hosts_up || 0} host up]
+                </option>
+            `;
+        }).join('');
 
         const targetScanId = currentScanId || (allScansList[0] && allScansList[0].id);
         if (targetScanId) {
