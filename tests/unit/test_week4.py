@@ -8,6 +8,7 @@ using unittest.mock.
 from __future__ import annotations
 
 import json
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -20,7 +21,7 @@ from app.core.errors import LLMError, LLMValidationError
 
 
 @pytest.fixture
-def sample_findings():
+def sample_findings() -> list[dict[str, Any]]:
     return [
         {
             "cve_id": "CVE-2011-3192",
@@ -40,7 +41,7 @@ def sample_findings():
 
 
 @pytest.fixture
-def sample_scan_context():
+def sample_scan_context() -> dict[str, Any]:
     return {
         "target": "192.168.56.101",
         "profile": "quick",
@@ -64,16 +65,21 @@ def make_gemini_response(text: str, status_code: int = 200) -> MagicMock:
 class TestGeminiProvider:
     """Unit tests for GeminiProvider with mocked HTTP."""
 
-    def test_availability_true_with_keys(self):
+    def test_availability_true_with_keys(self) -> None:
         provider = GeminiProvider(api_keys=["key1", "key2"])
         assert provider.is_available() is True
 
-    def test_availability_false_without_keys(self):
+    def test_availability_false_without_keys(self) -> None:
         provider = GeminiProvider(api_keys=[])
         assert provider.is_available() is False
 
     @patch("httpx.Client.post")
-    def test_successful_analysis(self, mock_post, sample_findings, sample_scan_context):
+    def test_successful_analysis(
+        self,
+        mock_post: MagicMock,
+        sample_findings: list[dict[str, Any]],
+        sample_scan_context: dict[str, Any],
+    ) -> None:
         """Valid JSON from Gemini passes validation and returns structured dict."""
         ai_output = json.dumps(
             {
@@ -101,7 +107,12 @@ class TestGeminiProvider:
         assert kwargs["headers"]["x-goog-api-key"] == "test-key-1"
 
     @patch("httpx.Client.post")
-    def test_key_rotation_on_429(self, mock_post, sample_findings, sample_scan_context):
+    def test_key_rotation_on_429(
+        self,
+        mock_post: MagicMock,
+        sample_findings: list[dict[str, Any]],
+        sample_scan_context: dict[str, Any],
+    ) -> None:
         """When Key 1 hits 429 (rate limit), provider rotates to Key 2 and succeeds."""
         resp_429 = MagicMock()
         resp_429.status_code = 429
@@ -127,7 +138,12 @@ class TestGeminiProvider:
         assert result["summary"] == "Summary via Key 2."
 
     @patch("httpx.Client.post")
-    def test_catches_hallucinated_cve(self, mock_post, sample_findings, sample_scan_context):
+    def test_catches_hallucinated_cve(
+        self,
+        mock_post: MagicMock,
+        sample_findings: list[dict[str, Any]],
+        sample_scan_context: dict[str, Any],
+    ) -> None:
         """If Gemini hallucinates a CVE not in input findings, LLMValidationError is raised."""
         ai_output = json.dumps(
             {
@@ -145,7 +161,12 @@ class TestGeminiProvider:
         assert "CVE-2099-99999" in str(exc_info.value)
 
     @patch("httpx.Client.post")
-    def test_catches_dangerous_command(self, mock_post, sample_findings, sample_scan_context):
+    def test_catches_dangerous_command(
+        self,
+        mock_post: MagicMock,
+        sample_findings: list[dict[str, Any]],
+        sample_scan_context: dict[str, Any],
+    ) -> None:
         """If output includes forbidden commands, LLMValidationError is raised."""
         ai_output = json.dumps(
             {
@@ -168,7 +189,7 @@ class TestGeminiProvider:
 class TestGeminiFactory:
     """Tests for get_ai_provider() with configuration settings."""
 
-    def test_provider_none_when_disabled(self, monkeypatch):
+    def test_provider_none_when_disabled(self, monkeypatch: Any) -> None:
         monkeypatch.setenv("AI_ENABLED", "false")
         from app.config import reset_settings
 
@@ -177,7 +198,7 @@ class TestGeminiFactory:
         assert provider is None
         reset_settings()
 
-    def test_provider_creates_gemini_with_multiple_keys(self, monkeypatch):
+    def test_provider_creates_gemini_with_multiple_keys(self, monkeypatch: Any) -> None:
         monkeypatch.setenv("AI_ENABLED", "true")
         monkeypatch.setenv("AI_PROVIDER", "gemini")
         monkeypatch.setenv("GEMINI_API_KEY", "keyA, keyB, keyC")
@@ -200,8 +221,11 @@ class TestAnalysisFallback:
     """Tests for _get_analysis() fallback behavior."""
 
     def test_falls_back_to_deterministic_when_gemini_fails(
-        self, monkeypatch, sample_findings, sample_scan_context
-    ):
+        self,
+        monkeypatch: Any,
+        sample_findings: list[dict[str, Any]],
+        sample_scan_context: dict[str, Any],
+    ) -> None:
         """When Gemini throws an error, _get_analysis returns deterministic output without crashing."""
         monkeypatch.setenv("AI_ENABLED", "true")
         monkeypatch.setenv("AI_PROVIDER", "gemini")

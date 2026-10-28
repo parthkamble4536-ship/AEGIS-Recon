@@ -6,6 +6,8 @@ Uses mocked HTTP responses — no real API calls.
 from __future__ import annotations
 
 import json
+from collections.abc import Generator
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -14,7 +16,7 @@ from app.db.database import init_db, reset_db
 
 
 @pytest.fixture
-def intel_db(tmp_path):
+def intel_db(tmp_path: Any) -> Generator[str, None, None]:
     """Fresh DB for intel tests."""
     db_path = str(tmp_path / "intel_test.db")
     init_db(db_path)
@@ -28,20 +30,20 @@ def intel_db(tmp_path):
 class TestNVDClient:
     """Test NVD API client (mocked)."""
 
-    def test_normalize_cpe_legacy(self):
+    def test_normalize_cpe_legacy(self) -> None:
         from app.intel.nvd import _normalize_cpe
 
         result = _normalize_cpe("cpe:/a:apache:http_server:2.2.8")
         assert result.startswith("cpe:2.3:")
         assert "apache" in result
 
-    def test_normalize_cpe_already_23(self):
+    def test_normalize_cpe_already_23(self) -> None:
         from app.intel.nvd import _normalize_cpe
 
         cpe = "cpe:2.3:a:apache:http_server:2.2.8:*:*:*:*:*:*:*"
         assert _normalize_cpe(cpe) == cpe
 
-    def test_cvss_v2_severity(self):
+    def test_cvss_v2_severity(self) -> None:
         from app.intel.nvd import _cvss_v2_severity
 
         assert _cvss_v2_severity(9.0) == "high"
@@ -49,7 +51,7 @@ class TestNVDClient:
         assert _cvss_v2_severity(2.0) == "low"
 
     @patch("app.intel.nvd.httpx.Client")
-    def test_search_cves_by_cpe_success(self, mock_client_cls):
+    def test_search_cves_by_cpe_success(self, mock_client_cls: MagicMock) -> None:
         from app.intel.nvd import search_cves_by_cpe
 
         mock_response = MagicMock()
@@ -90,7 +92,7 @@ class TestNVDClient:
         assert results[0].cvss_v3_score == 10.0
 
     @patch("app.intel.nvd.httpx.Client")
-    def test_search_empty_result(self, mock_client_cls):
+    def test_search_empty_result(self, mock_client_cls: MagicMock) -> None:
         from app.intel.nvd import search_cves_by_cpe
 
         mock_response = MagicMock()
@@ -112,7 +114,7 @@ class TestNVDClient:
 class TestKEVClient:
     """Test CISA KEV client (mocked)."""
 
-    def test_parse_kev_catalog(self):
+    def test_parse_kev_catalog(self) -> None:
         from app.intel.kev import _parse_kev_catalog
 
         data = {
@@ -142,7 +144,7 @@ class TestKEVClient:
         assert entry.vendor == "Apache"
         assert entry.known_ransomware_use == "Known"
 
-    def test_is_in_kev(self):
+    def test_is_in_kev(self) -> None:
         from app.intel.kev import KEVCatalog, KEVEntry, is_in_kev
 
         catalog = KEVCatalog(
@@ -161,19 +163,19 @@ class TestKEVClient:
 class TestIntelCache:
     """Test intelligence caching."""
 
-    def test_cache_set_and_get(self, intel_db):
+    def test_cache_set_and_get(self, intel_db: str) -> None:
         from app.intel.cache import cache_get, cache_set
 
         cache_set("test:key1", "nvd", '{"data": "test"}', ttl_seconds=3600)
         result = cache_get("test:key1")
         assert result == '{"data": "test"}'
 
-    def test_cache_miss(self, intel_db):
+    def test_cache_miss(self, intel_db: str) -> None:
         from app.intel.cache import cache_get
 
         assert cache_get("nonexistent:key") is None
 
-    def test_cache_stale_fallback(self, intel_db):
+    def test_cache_stale_fallback(self, intel_db: str) -> None:
         from app.intel.cache import cache_get_stale, cache_set
 
         cache_set("test:stale", "nvd", '{"stale": true}', ttl_seconds=0)
@@ -182,7 +184,7 @@ class TestIntelCache:
         assert data == '{"stale": true}'
         assert ts is not None
 
-    def test_cache_timestamp(self, intel_db):
+    def test_cache_timestamp(self, intel_db: str) -> None:
         from app.intel.cache import cache_set, get_cache_timestamp
 
         cache_set("test:ts", "nvd", "{}", ttl_seconds=3600)
@@ -196,7 +198,7 @@ class TestIntelCache:
 class TestRiskScoring:
     """Test explainable risk engine."""
 
-    def test_critical_kev_finding(self):
+    def test_critical_kev_finding(self) -> None:
         from app.risk.scoring import calculate_risk
 
         result = calculate_risk(
@@ -215,7 +217,7 @@ class TestRiskScoring:
         assert any(f["name"] == "CISA KEV Listed" for f in result.factors)
         assert len(result.factors) >= 4  # Multiple factors
 
-    def test_low_confidence_hypothesis(self):
+    def test_low_confidence_hypothesis(self) -> None:
         from app.risk.scoring import calculate_risk
 
         result = calculate_risk(
@@ -232,7 +234,7 @@ class TestRiskScoring:
         assert result.priority_score < 60
         assert result.evidence_type == "hypothesis"
 
-    def test_no_cvss_score(self):
+    def test_no_cvss_score(self) -> None:
         from app.risk.scoring import calculate_risk
 
         result = calculate_risk(
@@ -242,12 +244,12 @@ class TestRiskScoring:
         )
 
         assert result.priority_score > 0  # Other factors still contribute
-        assert any("No CVSS" in f["detail"] for f in result.factors)
+        assert any("No CVSS" in str(f.get("detail", "")) for f in result.factors)
 
-    def test_scoring_deterministic(self):
+    def test_scoring_deterministic(self) -> None:
         from app.risk.scoring import calculate_risk
 
-        kwargs = {
+        kwargs: dict[str, Any] = {
             "cvss_score": 8.0,
             "cvss_severity": "high",
             "confidence": "high",
@@ -258,12 +260,12 @@ class TestRiskScoring:
             "match_method": "cpe_range",
         }
 
-        r1 = calculate_risk(**kwargs)
-        r2 = calculate_risk(**kwargs)
+        r1 = calculate_risk(**kwargs)  # type: ignore[arg-type]
+        r2 = calculate_risk(**kwargs)  # type: ignore[arg-type]
         assert r1.priority_score == r2.priority_score
         assert len(r1.factors) == len(r2.factors)
 
-    def test_factors_have_explanations(self):
+    def test_factors_have_explanations(self) -> None:
         from app.risk.scoring import calculate_risk
 
         result = calculate_risk(
@@ -278,7 +280,7 @@ class TestRiskScoring:
             assert "name" in factor
             assert "detail" in factor
             assert "impact" in factor
-            assert len(factor["detail"]) > 10  # Meaningful explanation
+            assert len(str(factor.get("detail", ""))) > 10  # Meaningful explanation
 
 
 # ── AI Validator Tests ──────────────────────────────────
@@ -287,7 +289,7 @@ class TestRiskScoring:
 class TestAIValidator:
     """Test LLM output validation."""
 
-    def test_valid_output(self):
+    def test_valid_output(self) -> None:
         from app.ai.validator import validate_ai_output
 
         output = json.dumps(
@@ -303,7 +305,7 @@ class TestAIValidator:
         result = validate_ai_output(output, {"CVE-2021-44228"})
         assert result["summary"] == "Test summary"
 
-    def test_hallucinated_cve_rejected(self):
+    def test_hallucinated_cve_rejected(self) -> None:
         from app.ai.validator import validate_ai_output
         from app.core.errors import LLMValidationError
 
@@ -319,14 +321,14 @@ class TestAIValidator:
         with pytest.raises(LLMValidationError, match="not in input"):
             validate_ai_output(output, {"CVE-2021-44228"})
 
-    def test_invalid_json_rejected(self):
+    def test_invalid_json_rejected(self) -> None:
         from app.ai.validator import validate_ai_output
         from app.core.errors import LLMValidationError
 
         with pytest.raises(LLMValidationError, match="not valid JSON"):
             validate_ai_output("not json at all", set())
 
-    def test_missing_fields_rejected(self):
+    def test_missing_fields_rejected(self) -> None:
         from app.ai.validator import validate_ai_output
         from app.core.errors import LLMValidationError
 
@@ -335,7 +337,7 @@ class TestAIValidator:
         with pytest.raises(LLMValidationError, match="missing required"):
             validate_ai_output(output, set())
 
-    def test_markdown_wrapped_json(self):
+    def test_markdown_wrapped_json(self) -> None:
         from app.ai.validator import validate_ai_output
 
         output = '```json\n{"summary":"Test","risk_overview":"R","recommendations":[],"limitations":"L"}\n```'
@@ -350,7 +352,7 @@ class TestAIValidator:
 class TestFallback:
     """Test deterministic analysis."""
 
-    def test_empty_findings(self):
+    def test_empty_findings(self) -> None:
         from app.ai.fallback import generate_deterministic_analysis
 
         result = generate_deterministic_analysis(
@@ -361,7 +363,7 @@ class TestFallback:
         assert result["analysis_method"] == "deterministic"
         assert len(result["recommendations"]) > 0
 
-    def test_with_findings(self):
+    def test_with_findings(self) -> None:
         from app.ai.fallback import generate_deterministic_analysis
 
         findings = [
@@ -412,7 +414,7 @@ class TestFallback:
 class TestReportBuilder:
     """Test report generation."""
 
-    def test_json_report(self):
+    def test_json_report(self) -> None:
         from app.reports.builder import build_json_report
 
         report = build_json_report(
@@ -432,7 +434,7 @@ class TestReportBuilder:
         assert report["summary"]["severity_counts"]["high"] == 1
         assert "disclaimer" in report
 
-    def test_html_report(self):
+    def test_html_report(self) -> None:
         from app.reports.builder import build_html_report
 
         html = build_html_report(
@@ -463,7 +465,7 @@ class TestReportBuilder:
         assert "192.168.56.101" in html
         assert "<script>" not in html.split("</head>")[1] or True  # No injected scripts
 
-    def test_xss_prevention(self):
+    def test_xss_prevention(self) -> None:
         from app.reports.builder import build_html_report
 
         html = build_html_report(

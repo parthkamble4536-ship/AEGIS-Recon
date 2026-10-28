@@ -70,11 +70,11 @@ class TestScopeAndSSRFProtection:
     """Verifies that requests cannot reach unintended internal or cloud-metadata targets."""
 
     UNAUTHORIZED_TARGETS = [
-        "127.0.0.1",          # Localhost / loopback
-        "169.254.169.254",    # AWS/GCP cloud instance metadata service
-        "10.0.0.1",           # Corporate internal subnet
-        "172.16.0.1",         # Docker / private subnet
-        "8.8.8.8",            # Public internet target
+        "127.0.0.1",  # Localhost / loopback
+        "169.254.169.254",  # AWS/GCP cloud instance metadata service
+        "10.0.0.1",  # Corporate internal subnet
+        "172.16.0.1",  # Docker / private subnet
+        "8.8.8.8",  # Public internet target
         "evil.attacker.com",  # Arbitrary external hostname
     ]
 
@@ -90,7 +90,7 @@ class TestStoredXSSDefenseInReports:
 
     XSS_PAYLOADS = [
         '<script>alert("XSS")</script>',
-        '<img src=x onerror=alert(1)>',
+        "<img src=x onerror=alert(1)>",
         '"><svg onload=alert(document.cookie)>',
         "javascript:alert(1)",
     ]
@@ -99,22 +99,26 @@ class TestStoredXSSDefenseInReports:
     def test_malicious_banners_autoescaped(self, payload):
         scan = {"target": "192.168.56.101", "profile": "quick", "scan_id": "test-xss"}
         hosts = [{"ip": "192.168.56.101", "hostname": payload}]
-        services = [{
-            "port": 80,
-            "service_name": payload,
-            "product": payload,
-            "version": payload,
-            "cpe": "[]",
-        }]
-        findings = [{
-            "cve_id": "CVE-2021-44228",
-            "title": payload,
-            "description": payload,
-            "severity": "CRITICAL",
-            "priority_score": 90.0,
-            "evidence_type": "observed",
-            "evidence_detail": payload,
-        }]
+        services = [
+            {
+                "port": 80,
+                "service_name": payload,
+                "product": payload,
+                "version": payload,
+                "cpe": "[]",
+            }
+        ]
+        findings = [
+            {
+                "cve_id": "CVE-2021-44228",
+                "title": payload,
+                "description": payload,
+                "severity": "CRITICAL",
+                "priority_score": 90.0,
+                "evidence_type": "observed",
+                "evidence_detail": payload,
+            }
+        ]
 
         html = build_html_report(scan, hosts, services, findings)
 
@@ -159,5 +163,6 @@ class TestBanditSecurityAudit:
             text=True,
             check=False,
         )
-        assert result.returncode == 0, f"Bandit security scan failed:\n{result.stdout}\n{result.stderr}"
-
+        assert result.returncode == 0, (
+            f"Bandit security scan failed:\n{result.stdout}\n{result.stderr}"
+        )

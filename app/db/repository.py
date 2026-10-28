@@ -140,7 +140,9 @@ def save_host(scan_id: str, host: ParsedHost) -> str:
     return host_id
 
 
-def save_service(conn: sqlite3.Connection, host_id: str, scan_id: str, service: ParsedService) -> str:
+def save_service(
+    conn: sqlite3.Connection, host_id: str, scan_id: str, service: ParsedService
+) -> str:
     """Save a single service (called within a transaction)."""
     service_id = str(uuid.uuid4())
     conn.execute(

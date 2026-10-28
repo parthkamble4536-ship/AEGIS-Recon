@@ -45,7 +45,7 @@ def empty_scan_xml() -> str:
 
 
 @pytest.fixture
-def lab_db(tmp_path):
+def lab_db(tmp_path: Any) -> Any:
     """Fresh isolated SQLite DB for each lab test."""
     from app.db.database import init_db, reset_db
 
@@ -253,9 +253,7 @@ class TestFullStoragePipeline:
         services = get_services_for_scan("e2e-002")
         assert len(services) == 10
 
-    def test_pipeline_stores_vsftpd_cpe(
-        self, lab_db: str, metasploitable_xml: str
-    ) -> None:
+    def test_pipeline_stores_vsftpd_cpe(self, lab_db: str, metasploitable_xml: str) -> None:
         from app.db.repository import get_services_for_scan, save_parsed_scan, save_scan
         from app.parser.nmap_xml import parse_nmap_xml
         from app.scanner.runner import ScanResult
@@ -279,9 +277,7 @@ class TestFullStoragePipeline:
         cpes = json.loads(ports[21]["cpe"])
         assert any("vsftpd" in c for c in cpes)
 
-    def test_pipeline_stores_host_with_os_match(
-        self, lab_db: str, metasploitable_xml: str
-    ) -> None:
+    def test_pipeline_stores_host_with_os_match(self, lab_db: str, metasploitable_xml: str) -> None:
         from app.db.repository import get_hosts_for_scan, save_parsed_scan, save_scan
         from app.parser.nmap_xml import parse_nmap_xml
         from app.scanner.runner import ScanResult
@@ -577,12 +573,8 @@ class TestRiskScoring:
     def test_service_exposure_adds_points(self) -> None:
         from app.risk.scoring import calculate_risk
 
-        with_exposure = calculate_risk(
-            cvss_score=5.0, service_name="http", port=80
-        )
-        without_exposure = calculate_risk(
-            cvss_score=5.0, service_name="custom-app", port=54321
-        )
+        with_exposure = calculate_risk(cvss_score=5.0, service_name="http", port=80)
+        without_exposure = calculate_risk(cvss_score=5.0, service_name="custom-app", port=54321)
         assert with_exposure.priority_score > without_exposure.priority_score
 
     def test_priority_ordering_is_consistent(self) -> None:
@@ -681,17 +673,13 @@ class TestJSONReportGeneration:
             _make_finding("CVE-B", is_kev=True),
             _make_finding("CVE-C", is_kev=False),
         ]
-        report = build_json_report(
-            scan=_make_scan_dict(), hosts=[], services=[], findings=findings
-        )
+        report = build_json_report(scan=_make_scan_dict(), hosts=[], services=[], findings=findings)
         assert report["summary"]["kev_count"] == 2
 
     def test_json_report_includes_disclaimer(self) -> None:
         from app.reports.builder import build_json_report
 
-        report = build_json_report(
-            scan=_make_scan_dict(), hosts=[], services=[], findings=[]
-        )
+        report = build_json_report(scan=_make_scan_dict(), hosts=[], services=[], findings=[])
         assert "disclaimer" in report
         assert "hypothesis" in report["disclaimer"].lower()
 
@@ -953,9 +941,7 @@ class TestEdgeCases:
         assert result.hosts_down >= 1
         assert result.hosts_up == 0
 
-    def test_empty_scan_stored_and_queried(
-        self, lab_db: str, empty_scan_xml: str
-    ) -> None:
+    def test_empty_scan_stored_and_queried(self, lab_db: str, empty_scan_xml: str) -> None:
         from app.db.repository import get_scan, get_services_for_scan, save_parsed_scan, save_scan
         from app.parser.nmap_xml import parse_nmap_xml
         from app.scanner.runner import ScanResult
@@ -1093,8 +1079,7 @@ class TestStressAndPerformance:
         from app.reports.builder import build_json_report
 
         findings = [
-            _make_finding(f"CVE-{i:04d}", severity="high", is_kev=(i % 10 == 0))
-            for i in range(500)
+            _make_finding(f"CVE-{i:04d}", severity="high", is_kev=(i % 10 == 0)) for i in range(500)
         ]
         start = time.monotonic()
         report = build_json_report(
@@ -1107,9 +1092,7 @@ class TestStressAndPerformance:
         assert elapsed < 3.0, f"Report generation took {elapsed:.2f}s (limit: 3s)"
         assert report["summary"]["findings_total"] == 500
 
-    def test_parse_metasploitable_xml_under_1_second(
-        self, metasploitable_xml: str
-    ) -> None:
+    def test_parse_metasploitable_xml_under_1_second(self, metasploitable_xml: str) -> None:
         from app.parser.nmap_xml import parse_nmap_xml
 
         start = time.monotonic()
