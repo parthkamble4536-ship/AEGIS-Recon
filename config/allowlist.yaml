@@ -18,6 +18,9 @@ targets:
   - ip: "192.168.56.102"
     description: "Secondary lab target (if configured)"
 
+  - ip: "127.0.0.1"
+    description: "Localhost loopback for local testing"
+
   # Uncomment to allow an entire lab subnet:
   # - cidr: "192.168.56.0/24"
   #   description: "Host-only lab network"

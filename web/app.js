@@ -352,45 +352,84 @@ async function viewScanDetail(scanId) {
         // Load scan data
         const scanRes = await fetch(`${API_BASE}/scans/${scanId}`);
         const scanData = await scanRes.json();
+        const scan = scanData.scan || {};
+        const services = scanData.services || [];
+        const isHostDown = scan.hosts_up === 0;
 
         document.getElementById('detail-title').textContent =
-            `Scan: ${scanData.scan.target} (${scanData.scan.profile})`;
+            `Scan: ${scan.target || 'Target'} (${scan.profile || 'Profile'})`;
+
+        // Host Status Notice
+        const noticeEl = document.getElementById('scan-host-notice');
+        if (noticeEl) {
+            if (isHostDown) {
+                noticeEl.innerHTML = `
+                    <div class="form-notice" style="background: rgba(255, 177, 51, 0.12); border: 1px solid rgba(255, 177, 51, 0.35); color: var(--medium); margin-bottom: 1.25rem;">
+                        <span style="font-size: 1.3rem;">⚠️</span>
+                        <div>
+                            <strong style="color: #ffb133; font-size: 0.95rem;">Host was reported DOWN (0 hosts up) by Nmap</strong>
+                            <p style="margin: 0.25rem 0 0 0; font-size: 0.83rem; color: var(--text-secondary);">
+                                Target <code>${escapeHtml(scan.target)}</code> did not respond to ping probes or port scans.
+                                If this is a VM (e.g. Metasploitable), make sure it is powered on and assigned an IP on your network adapter.
+                            </p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                noticeEl.innerHTML = '';
+            }
+        }
 
         // Services table
         const svcBody = document.getElementById('detail-services-body');
-        svcBody.innerHTML = (scanData.services || []).map(s => `
-            <tr>
-                <td>${escapeHtml(s.ip || '')}</td>
-                <td><strong>${s.port}</strong>/${s.protocol}</td>
-                <td>${escapeHtml(s.service_name || '')}</td>
-                <td>${escapeHtml(s.product || '')}</td>
-                <td>${escapeHtml(s.version || '')}</td>
-                <td style="font-size:0.75rem;color:var(--text-muted)">${escapeHtml(truncate(s.cpe || '[]', 60))}</td>
-            </tr>
-        `).join('');
+        if (!services.length) {
+            svcBody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                        ${isHostDown ? '🚫 Target host was offline/down. No open network services discovered.' : '🔍 No open services found on scanned ports.'}
+                    </td>
+                </tr>
+            `;
+        } else {
+            svcBody.innerHTML = services.map(s => `
+                <tr>
+                    <td>${escapeHtml(s.ip || '')}</td>
+                    <td><strong>${s.port}</strong>/${s.protocol}</td>
+                    <td>${escapeHtml(s.service_name || '')}</td>
+                    <td>${escapeHtml(s.product || '')}</td>
+                    <td>${escapeHtml(s.version || '')}</td>
+                    <td style="font-size:0.75rem;color:var(--text-muted)">${escapeHtml(truncate(s.cpe || '[]', 60))}</td>
+                </tr>
+            `).join('');
+        }
 
         // Load findings
         const findRes = await fetch(`${API_BASE}/findings/${scanId}`);
         const findData = await findRes.json();
-        renderFindings(findData.findings || []);
+        renderFindings(findData.findings || [], isHostDown);
 
         // Load analysis
         const analysisRes = await fetch(`${API_BASE}/reports/${scanId}/analysis`);
         const analysisData = await analysisRes.json();
-        renderAnalysis(analysisData.analysis || {});
+        renderAnalysis(analysisData.analysis || {}, isHostDown);
 
     } catch (e) {
         showToast(`Error loading scan: ${e.message}`, 'error');
     }
 }
 
-function renderFindings(findings) {
+function renderFindings(findings, isHostDown = false) {
     const container = document.getElementById('findings-container');
     const emptyMsg = document.getElementById('no-findings-msg');
 
     if (!findings.length) {
         container.innerHTML = '';
         emptyMsg.classList.remove('hidden');
+        if (isHostDown) {
+            emptyMsg.innerHTML = '<p>No vulnerabilities to report because the target host was offline (0 open services).</p>';
+        } else {
+            emptyMsg.innerHTML = '<p>No findings yet. Click "Enrich CVEs" to match services against the NVD.</p>';
+        }
         return;
     }
 
@@ -417,8 +456,11 @@ function renderFindings(findings) {
     `).join('');
 }
 
-function renderAnalysisHTML(analysis) {
+function renderAnalysisHTML(analysis, isHostDown = false) {
     if (!analysis || !analysis.summary) {
+        if (isHostDown) {
+            return '<p style="color:var(--text-muted)">No analysis available — target host was unreachable during the scan.</p>';
+        }
         return '<p style="color:var(--text-muted)">No analysis available. Click "Enrich CVEs" or run AI analysis.</p>';
     }
 
@@ -461,10 +503,10 @@ function renderAnalysisHTML(analysis) {
     `;
 }
 
-function renderAnalysis(analysis) {
+function renderAnalysis(analysis, isHostDown = false) {
     const container = document.getElementById('analysis-container');
     if (!container) return;
-    container.innerHTML = renderAnalysisHTML(analysis);
+    container.innerHTML = renderAnalysisHTML(analysis, isHostDown);
 }
 
 // ─── AI Analysis View ──────────────────────────────────
@@ -490,7 +532,7 @@ async function loadAIView() {
 
         select.innerHTML = allScansList.map(s => `
             <option value="${s.id}" ${s.id === currentScanId ? 'selected' : ''}>
-                ${escapeHtml(s.target)} (${escapeHtml(s.profile)}) — ${formatTime(s.start_time)}
+                ${escapeHtml(s.target)} (${escapeHtml(s.profile)}) — ${formatTime(s.start_time)} [${s.hosts_up || 0} host up]
             </option>
         `).join('');
 
@@ -522,6 +564,9 @@ async function fetchAndRenderAIAnalysis(scanId) {
     container.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--accent);">⏳ Generating AI security intelligence...</div>';
 
     try {
+        const scanObj = allScansList.find(s => s.id === scanId);
+        const isHostDown = scanObj && scanObj.hosts_up === 0;
+
         const res = await fetch(`${API_BASE}/reports/${scanId}/analysis`);
         const data = await res.json();
         const analysis = data.analysis || {};
@@ -530,7 +575,22 @@ async function fetchAndRenderAIAnalysis(scanId) {
             badge.textContent = analysis.analysis_method || 'AI Analysis';
         }
 
-        container.innerHTML = renderAnalysisHTML(analysis);
+        if (isHostDown) {
+            container.innerHTML = `
+                <div class="form-notice" style="background: rgba(255, 177, 51, 0.12); border: 1px solid rgba(255, 177, 51, 0.35); color: var(--medium); margin-bottom: 1.25rem;">
+                    <span style="font-size: 1.3rem;">⚠️</span>
+                    <div>
+                        <strong style="color: #ffb133;">Target host was unreachable (0 hosts up)</strong>
+                        <p style="margin: 0.25rem 0 0 0; font-size: 0.83rem; color: var(--text-secondary);">
+                            No open network services were discovered on this scan. Select the Metasploitable 2 scan (192.168.56.101) to view full AI vulnerability analysis.
+                        </p>
+                    </div>
+                </div>
+                ${renderAnalysisHTML(analysis, true)}
+            `;
+        } else {
+            container.innerHTML = renderAnalysisHTML(analysis, false);
+        }
     } catch (e) {
         container.innerHTML = `<p style="color:var(--error)">Error fetching analysis: ${escapeHtml(e.message)}</p>`;
     }
