@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<?xml-stylesheet href="file:///usr/local/bin/../share/nmap/nmap.xsl" type="text/xsl"?>
+<nmaprun scanner="nmap" args="nmap -sS -sV -sC -T4 -p- --open -oX metasploitable3_linux.xml 192.168.56.103" start="1700001000" startstr="Wed Nov 15 10:20:00 2023" version="7.94" xmloutputversion="1.05">
+  <scaninfo type="syn" protocol="tcp" numservices="1000" services="1-1000"/>
+  <verbose level="0"/>
+  <debugging level="0"/>
+  <host starttime="1700001001" endtime="1700001050">
+    <status state="up" reason="arp-response" reason_ttl="0"/>
+    <address addr="192.168.56.103" addrtype="ipv4"/>
+    <address addr="08:00:27:78:9A:BC" addrtype="mac" vendor="PCS Systemtechnik GmbH"/>
+    <hostnames>
+      <hostname name="metasploitable3-linux.localdomain" type="PTR"/>
+    </hostnames>
+    <ports>
+      <port protocol="tcp" portid="21">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="ftp" product="ProFTPD" version="1.3.5" method="probed" conf="10">
+          <cpe>cpe:/a:proftpd:proftpd:1.3.5</cpe>
+        </service>
+      </port>
+      <port protocol="tcp" portid="22">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="ssh" product="OpenSSH" version="6.6.1p1 Ubuntu 2ubuntu2.8" extrainfo="Ubuntu Linux; protocol 2.0" method="probed" conf="10">
+          <cpe>cpe:/a:openbsd:openssh:6.6.1p1</cpe>
+          <cpe>cpe:/o:canonical:ubuntu_linux:14.04</cpe>
+        </service>
+      </port>
+      <port protocol="tcp" portid="80">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="http" product="Apache httpd" version="2.4.7" extrainfo="(Ubuntu)" method="probed" conf="10">
+          <cpe>cpe:/a:apache:http_server:2.4.7</cpe>
+        </service>
+        <script id="http-server-header" output="Apache/2.4.7 (Ubuntu)"/>
+        <script id="http-title" output="Metasploitable3 - Linux"/>
+      </port>
+      <port protocol="tcp" portid="631">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="ipp" product="CUPS" version="1.7" method="probed" conf="10">
+          <cpe>cpe:/a:apple:cups:1.7</cpe>
+        </service>
+      </port>
+      <port protocol="tcp" portid="3306">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="mysql" product="MySQL" version="5.5.54-0ubuntu0.14.04.1" method="probed" conf="10">
+          <cpe>cpe:/a:mysql:mysql:5.5.54</cpe>
+        </service>
+      </port>
+      <port protocol="tcp" portid="6697">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="irc" product="UnrealIRCd" method="probed" conf="10">
+          <cpe>cpe:/a:unrealircd:unrealircd</cpe>
+        </service>
+      </port>
+      <port protocol="tcp" portid="8080">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="http" product="Apache Tomcat" version="8.0.33" method="probed" conf="10">
+          <cpe>cpe:/a:apache:tomcat:8.0.33</cpe>
+        </service>
+        <script id="http-title" output="Apache Tomcat/8.0.33"/>
+      </port>
+      <port protocol="tcp" portid="8181">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="http" product="GlassFish Server Open Source Edition" version="4.0" method="probed" conf="10">
+          <cpe>cpe:/a:oracle:glassfish_server:4.0</cpe>
+        </service>
+      </port>
+      <port protocol="tcp" portid="9200">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="http" product="Elasticsearch REST API" version="1.1.1" method="probed" conf="10">
+          <cpe>cpe:/a:elasticsearch:elasticsearch:1.1.1</cpe>
+        </service>
+      </port>
+    </ports>
+  </host>
+  <runstats>
+    <finished time="1700001050" timestr="Wed Nov 15 10:20:50 2023" summary="Nmap done at Wed Nov 15 10:20:50 2023; 1 IP address (1 host up) scanned in 50.00 seconds" elapsed="50.00" exit="success"/>
+    <hosts up="1" down="0" total="1"/>
+  </runstats>
+</nmaprun>

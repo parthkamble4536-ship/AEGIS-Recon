@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<?xml-stylesheet href="file:///usr/local/bin/../share/nmap/nmap.xsl" type="text/xsl"?>
+<nmaprun scanner="nmap" args="nmap -sS -sV -sC -T4 -p- --open -oX kioptrix.xml 192.168.56.104" start="1700002000" startstr="Wed Nov 15 10:40:00 2023" version="7.94" xmloutputversion="1.05">
+  <scaninfo type="syn" protocol="tcp" numservices="1000" services="1-1000"/>
+  <verbose level="0"/>
+  <debugging level="0"/>
+  <host starttime="1700002001" endtime="1700002040">
+    <status state="up" reason="arp-response" reason_ttl="0"/>
+    <address addr="192.168.56.104" addrtype="ipv4"/>
+    <address addr="08:00:27:DE:AD:BE" addrtype="mac" vendor="PCS Systemtechnik GmbH"/>
+    <hostnames>
+      <hostname name="kioptrix.level1.local" type="PTR"/>
+    </hostnames>
+    <ports>
+      <port protocol="tcp" portid="22">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="ssh" product="OpenSSH" version="2.9p2" extrainfo="protocol 1.99" method="probed" conf="10">
+          <cpe>cpe:/a:openbsd:openssh:2.9p2</cpe>
+        </service>
+      </port>
+      <port protocol="tcp" portid="80">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="http" product="Apache httpd" version="1.3.20" extrainfo="(Unix)  (Red-Hat/Linux) mod_ssl/2.8.4 OpenSSL/0.9.6b" method="probed" conf="10">
+          <cpe>cpe:/a:apache:http_server:1.3.20</cpe>
+          <cpe>cpe:/a:mod_ssl:mod_ssl:2.8.4</cpe>
+          <cpe>cpe:/a:openssl:openssl:0.9.6b</cpe>
+        </service>
+        <script id="http-title" output="Test Page for Apache Installation"/>
+      </port>
+      <port protocol="tcp" portid="111">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="rpcbind" product="rpcbind" version="2" extrainfo="RPC #100000" method="probed" conf="10"/>
+      </port>
+      <port protocol="tcp" portid="139">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="netbios-ssn" product="Samba smbd" version="2.2.1a" extrainfo="workgroup: MYGROUP" method="probed" conf="10">
+          <cpe>cpe:/a:samba:samba:2.2.1a</cpe>
+        </service>
+      </port>
+      <port protocol="tcp" portid="443">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="ssl/http" product="Apache httpd" version="1.3.20" extrainfo="(Unix)  (Red-Hat/Linux) mod_ssl/2.8.4 OpenSSL/0.9.6b" method="probed" conf="10">
+          <cpe>cpe:/a:apache:http_server:1.3.20</cpe>
+          <cpe>cpe:/a:mod_ssl:mod_ssl:2.8.4</cpe>
+          <cpe>cpe:/a:openssl:openssl:0.9.6b</cpe>
+        </service>
+        <script id="ssl-cert" output="Subject: commonName=localhost.localdomain/organizationName=SomeOrganization"/>
+      </port>
+      <port protocol="tcp" portid="1024">
+        <state state="open" reason="syn-ack" reason_ttl="64"/>
+        <service name="status" product="Linux rpc.statd" version="1" extrainfo="RPC #100024" method="probed" conf="10"/>
+      </port>
+    </ports>
+    <os>
+      <osmatch name="Linux 2.4.X" accuracy="95" line="2000">
+        <osclass type="general purpose" vendor="Linux" osfamily="Linux" osgen="2.4.X" accuracy="95"/>
+      </osmatch>
+    </os>
+  </host>
+  <runstats>
+    <finished time="1700002040" timestr="Wed Nov 15 10:40:40 2023" summary="Nmap done at Wed Nov 15 10:40:40 2023; 1 IP address (1 host up) scanned in 40.00 seconds" elapsed="40.00" exit="success"/>
+    <hosts up="1" down="0" total="1"/>
+  </runstats>
+</nmaprun>

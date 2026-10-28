@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<?xml-stylesheet href="file:///usr/local/bin/../share/nmap/nmap.xsl" type="text/xsl"?>
+<nmaprun scanner="nmap" args="nmap -sS -sV -sC -T4 -p- --open -oX metasploitable3_win.xml 192.168.56.102" start="1700000000" startstr="Wed Nov 15 10:00:00 2023" version="7.94" xmloutputversion="1.05">
+  <scaninfo type="syn" protocol="tcp" numservices="1000" services="1-1000"/>
+  <verbose level="0"/>
+  <debugging level="0"/>
+  <host starttime="1700000001" endtime="1700000060">
+    <status state="up" reason="arp-response" reason_ttl="0"/>
+    <address addr="192.168.56.102" addrtype="ipv4"/>
+    <address addr="08:00:27:12:34:56" addrtype="mac" vendor="PCS Systemtechnik GmbH"/>
+    <hostnames>
+      <hostname name="metasploitable3-win.localdomain" type="PTR"/>
+    </hostnames>
+    <ports>
+      <port protocol="tcp" portid="21">
+        <state state="open" reason="syn-ack" reason_ttl="128"/>
+        <service name="ftp" product="Microsoft ftpd" version="10.0" extrainfo="" method="probed" conf="10">
+          <cpe>cpe:/a:microsoft:ftp_service:10.0</cpe>
+        </service>
+      </port>
+      <port protocol="tcp" portid="80">
+        <state state="open" reason="syn-ack" reason_ttl="128"/>
+        <service name="http" product="Microsoft IIS httpd" version="10.0" method="probed" conf="10">
+          <cpe>cpe:/a:microsoft:internet_information_server:10.0</cpe>
+          <cpe>cpe:/o:microsoft:windows</cpe>
+        </service>
+        <script id="http-server-header" output="Microsoft-IIS/10.0"/>
+        <script id="http-title" output="IIS Windows Server"/>
+      </port>
+      <port protocol="tcp" portid="135">
+        <state state="open" reason="syn-ack" reason_ttl="128"/>
+        <service name="msrpc" product="Microsoft Windows RPC" method="probed" conf="10">
+          <cpe>cpe:/o:microsoft:windows</cpe>
+        </service>
+      </port>
+      <port protocol="tcp" portid="139">
+        <state state="open" reason="syn-ack" reason_ttl="128"/>
+        <service name="netbios-ssn" product="Microsoft Windows netbios-ssn" method="probed" conf="10">
+          <cpe>cpe:/o:microsoft:windows</cpe>
+        </service>
+      </port>
+      <port protocol="tcp" portid="445">
+        <state state="open" reason="syn-ack" reason_ttl="128"/>
+        <service name="microsoft-ds" product="Windows Server 2016 Standard 14393 microsoft-ds" extrainfo="workgroup: WORKGROUP" method="probed" conf="10">
+          <cpe>cpe:/o:microsoft:windows_server_2016:-</cpe>
+        </service>
+        <script id="smb-os-discovery" output="Windows Server 2016 Standard 14393"/>
+        <script id="smb-security-mode" output="account_used: guest, authentication_level: user"/>
+      </port>
+      <port protocol="tcp" portid="3306">
+        <state state="open" reason="syn-ack" reason_ttl="128"/>
+        <service name="mysql" product="MySQL" version="5.7.12" method="probed" conf="10">
+          <cpe>cpe:/a:oracle:mysql:5.7.12</cpe>
+        </service>
+        <script id="mysql-info" output="MySQL 5.7.12 protocol 10"/>
+      </port>
+      <port protocol="tcp" portid="3389">
+        <state state="open" reason="syn-ack" reason_ttl="128"/>
+        <service name="ms-wbt-server" product="Microsoft Terminal Services" method="probed" conf="10">
+          <cpe>cpe:/a:microsoft:terminal_services</cpe>
+        </service>
+      </port>
+      <port protocol="tcp" portid="4848">
+        <state state="open" reason="syn-ack" reason_ttl="128"/>
+        <service name="http" product="Oracle GlassFish Server" version="4.0" method="probed" conf="10">
+          <cpe>cpe:/a:oracle:glassfish_server:4.0</cpe>
+        </service>
+        <script id="http-title" output="GlassFish Server Administration Console"/>
+      </port>
+      <port protocol="tcp" portid="8080">
+        <state state="open" reason="syn-ack" reason_ttl="128"/>
+        <service name="http" product="Apache Tomcat" version="8.0.33" method="probed" conf="10">
+          <cpe>cpe:/a:apache:tomcat:8.0.33</cpe>
+        </service>
+        <script id="http-title" output="Apache Tomcat/8.0.33"/>
+      </port>
+      <port protocol="tcp" portid="8484">
+        <state state="open" reason="syn-ack" reason_ttl="128"/>
+        <service name="http" product="Jenkins" version="1.637" method="probed" conf="10">
+          <cpe>cpe:/a:jenkins:jenkins:1.637</cpe>
+        </service>
+        <script id="http-title" output="Dashboard [Jenkins]"/>
+      </port>
+      <port protocol="tcp" portid="9200">
+        <state state="open" reason="syn-ack" reason_ttl="128"/>
+        <service name="http" product="Elasticsearch REST API" version="1.1.1" method="probed" conf="10">
+          <cpe>cpe:/a:elasticsearch:elasticsearch:1.1.1</cpe>
+        </service>
+      </port>
+    </ports>
+    <os>
+      <osmatch name="Microsoft Windows Server 2016" accuracy="98" line="1024">
+        <osclass type="general purpose" vendor="Microsoft" osfamily="Windows" osgen="2016" accuracy="98"/>
+      </osmatch>
+    </os>
+  </host>
+  <runstats>
+    <finished time="1700000060" timestr="Wed Nov 15 10:01:00 2023" summary="Nmap done at Wed Nov 15 10:01:00 2023; 1 IP address (1 host up) scanned in 60.00 seconds" elapsed="60.00" exit="success"/>
+    <hosts up="1" down="0" total="1"/>
+  </runstats>
+</nmaprun>
