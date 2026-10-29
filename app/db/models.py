@@ -184,4 +184,25 @@ CREATE TABLE IF NOT EXISTS assets (
 );
 
 CREATE INDEX IF NOT EXISTS idx_assets_ip ON assets(ip);
+
+-- Evidence table: provenance and evidence chain for findings (Phase 6)
+CREATE TABLE IF NOT EXISTS evidence (
+    evidence_id TEXT PRIMARY KEY,
+    finding_id TEXT NOT NULL REFERENCES findings(id) ON DELETE CASCADE,
+    evidence_type TEXT NOT NULL,
+    -- observed, external_intelligence, hypothesis, recommendation
+    source TEXT NOT NULL,
+    -- nmap, nvd, cisa_kev, epss, vendor_advisory, aegis_rule, ai, analyst
+    source_reference TEXT NOT NULL DEFAULT '',
+    -- URL, API endpoint, rule ID, or other reference
+    collected_at TEXT NOT NULL,
+    content_hash TEXT NOT NULL DEFAULT '',
+    -- SHA-256 of evidence content for integrity
+    description TEXT NOT NULL DEFAULT '',
+    raw_data TEXT,
+    -- Optional raw payload (may be omitted for large data)
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_evidence_finding_id ON evidence(finding_id);
 """

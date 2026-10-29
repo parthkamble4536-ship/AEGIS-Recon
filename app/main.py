@@ -102,6 +102,7 @@ def create_app() -> FastAPI:
     # Register API routers
     from app.api.assets import router as assets_router
     from app.api.diff import router as diff_router
+    from app.api.evidence import router as evidence_router
     from app.api.findings import router as findings_router
     from app.api.health import router as health_router
     from app.api.reports import router as reports_router
@@ -113,6 +114,7 @@ def create_app() -> FastAPI:
     app.include_router(reports_router, prefix="/api", tags=["reports"])
     app.include_router(assets_router, prefix="/api", tags=["assets"])
     app.include_router(diff_router, prefix="/api", tags=["diff"])
+    app.include_router(evidence_router, prefix="/api", tags=["evidence"])
 
     # Serve dashboard static files
     web_dir = Path(__file__).parent.parent / "web"
