@@ -81,13 +81,18 @@ async function loadDashboard() {
         let totalFindings = 0;
         let criticalCount = 0;
 
-        // Load findings for each scan to compute stats
+        // Load findings and services for each scan to compute stats
         for (const scan of scans.slice(0, 5)) {
-            totalServices += scan.hosts_up || 0;
             try {
-                const fRes = await fetch(`${API_BASE}/findings/${scan.id}`);
+                const [fRes, sRes] = await Promise.all([
+                    fetch(`${API_BASE}/findings/${scan.id}`),
+                    fetch(`${API_BASE}/scans/${scan.id}`)
+                ]);
                 const fData = await fRes.json();
+                const sData = await sRes.json();
                 const findings = fData.findings || [];
+                const services = sData.services || [];
+                totalServices += services.length;
                 totalFindings += findings.length;
                 criticalCount += findings.filter(f => f.severity === 'critical').length;
             } catch (e) { /* ignore */ }
