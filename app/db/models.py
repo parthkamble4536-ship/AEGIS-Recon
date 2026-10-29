@@ -106,6 +106,17 @@ CREATE TABLE IF NOT EXISTS findings (
     -- How the CVE was matched (CPE, version range, etc.)
     intel_timestamp TEXT,
     -- When the intelligence data was retrieved
+    -- Analyst lifecycle fields (Phase 5)
+    analyst_status TEXT NOT NULL DEFAULT 'new',
+    -- FindingStatus: new, triaged, verified, remediation_planned, remediated, closed, false_positive, accepted_risk
+    analyst_decision TEXT NOT NULL DEFAULT 'pending',
+    -- AnalystDecision: pending, verify, false_positive, accept_risk, remediate, snooze
+    decision_reason TEXT NOT NULL DEFAULT '',
+    false_positive_reason TEXT,
+    decided_by TEXT,
+    decided_at TEXT,
+    status_changed_at TEXT,
+    status_changed_by TEXT,
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
 );
 

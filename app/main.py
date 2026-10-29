@@ -95,12 +95,13 @@ def create_app() -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["http://127.0.0.1:8000", "http://localhost:8000"],
-        allow_methods=["GET", "POST", "PUT", "DELETE"],
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
         allow_headers=["*"],
     )
 
     # Register API routers
     from app.api.assets import router as assets_router
+    from app.api.diff import router as diff_router
     from app.api.findings import router as findings_router
     from app.api.health import router as health_router
     from app.api.reports import router as reports_router
@@ -111,6 +112,7 @@ def create_app() -> FastAPI:
     app.include_router(findings_router, prefix="/api", tags=["findings"])
     app.include_router(reports_router, prefix="/api", tags=["reports"])
     app.include_router(assets_router, prefix="/api", tags=["assets"])
+    app.include_router(diff_router, prefix="/api", tags=["diff"])
 
     # Serve dashboard static files
     web_dir = Path(__file__).parent.parent / "web"
