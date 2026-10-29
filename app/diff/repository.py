@@ -193,3 +193,4 @@ def get_finding_status_history(finding_id: str) -> list[dict[str, Any]]:
             entry["detail"] = {}
         result.append(entry)
     return result
+

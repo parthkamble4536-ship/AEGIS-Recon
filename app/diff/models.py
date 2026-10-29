@@ -137,3 +137,4 @@ class ScanDiff:
             "removed_services": len(self.removed_services),
             "total_active": len(self.new_findings) + len(self.persistent_findings) + len(self.changed_findings),
         }
+

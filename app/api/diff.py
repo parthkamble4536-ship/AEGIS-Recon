@@ -2,10 +2,11 @@
 API endpoints for scan diff and finding lifecycle management.
 
 Routes:
-    GET  /api/scans/{scan_id}/diff?baseline={scan_a_id}  — Compare two scans
-    PATCH /api/findings/{finding_id}/status              — Update analyst status
-    PATCH /api/findings/{finding_id}/decision            — Record analyst decision
-    GET  /api/findings/{finding_id}/history              — Status/decision history
+    GET   /api/scans/{scan_id}/diff?baseline={scan_a_id}  — Compare two scans
+    PATCH /api/findings/{finding_id}/status               — Update analyst status
+    PATCH /api/findings/{finding_id}/decision             — Record analyst decision
+    PATCH /api/findings/{finding_id}/remediation          — Set remediation guidance
+    GET   /api/findings/{finding_id}/history              — Status/decision history
 """
 
 from __future__ import annotations
@@ -18,6 +19,7 @@ from pydantic import BaseModel
 from app.core.logging import get_logger
 from app.diff.engine import compare_scans, diff_to_dict
 from app.diff.models import AnalystDecision, FalsePositiveReason, FindingStatus
+from app.diff.remediation import update_finding_remediation
 from app.diff.repository import (
     get_finding_status_history,
     update_finding_decision,
@@ -46,6 +48,16 @@ class DecisionRequest(BaseModel):
     decision_reason: str = ""
     decided_by: str = "analyst"
     false_positive_reason: str | None = None
+
+
+class RemediationRequest(BaseModel):
+    """Body for PATCH /api/findings/{id}/remediation."""
+
+    vendor: str = ""
+    fixed_version: str = ""
+    advisory_url: str = ""
+    recommended_action: str = ""
+    updated_by: str = "analyst"
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -147,3 +159,32 @@ def get_finding_history(finding_id: str) -> list[dict[str, Any]]:
     Each entry includes: timestamp, action, user_id, detail.
     """
     return get_finding_status_history(finding_id)
+
+
+@router.patch("/findings/{finding_id}/remediation", tags=["lifecycle"])
+def patch_finding_remediation(finding_id: str, body: RemediationRequest) -> dict[str, Any]:
+    """
+    Set remediation guidance for a finding.
+
+    All fields must come from trusted sources (vendor advisories, NVD, CISA KEV).
+    Do NOT pass AI-generated text directly — this endpoint is for verified
+    remediation information only.
+
+    Fields:
+        vendor: Vendor providing the fix (e.g., "Apache Software Foundation")
+        fixed_version: Version that resolves the issue (e.g., "2.15.0")
+        advisory_url: URL to the official advisory
+        recommended_action: Human-readable remediation step
+    """
+    result = update_finding_remediation(
+        finding_id=finding_id,
+        vendor=body.vendor,
+        fixed_version=body.fixed_version,
+        advisory_url=body.advisory_url,
+        recommended_action=body.recommended_action,
+        updated_by=body.updated_by,
+    )
+    if result is None:
+        raise HTTPException(status_code=404, detail=f"Finding {finding_id!r} not found")
+    return result
+

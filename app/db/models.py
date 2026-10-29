@@ -117,6 +117,15 @@ CREATE TABLE IF NOT EXISTS findings (
     decided_at TEXT,
     status_changed_at TEXT,
     status_changed_by TEXT,
+    -- Remediation fields (Phase 7) — sourced from trusted references, never AI-fabricated
+    remediation_vendor TEXT,
+    -- Vendor name providing the fix
+    remediation_fixed_version TEXT,
+    -- Fixed version string (e.g., "2.15.0")
+    remediation_advisory_url TEXT,
+    -- URL to vendor/upstream advisory
+    remediation_recommended_action TEXT,
+    -- Human-readable recommended action (not AI-generated)
     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
 );
 
