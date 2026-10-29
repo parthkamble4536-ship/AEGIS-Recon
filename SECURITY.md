@@ -54,3 +54,4 @@ authoritative without analyst review.
 - All dependencies are pinned in `requirements.txt`.
 - `pip-audit` runs in CI to detect known vulnerable dependencies.
 - Dependency updates are reviewed before merging.
+

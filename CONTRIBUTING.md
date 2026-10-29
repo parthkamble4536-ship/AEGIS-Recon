@@ -75,3 +75,4 @@ feat(p5): Scan Diff engine (418 tests passing)
 fix(intel): Handle malformed CPE strings gracefully
 security(ai): Block prompt injection in CVE analysis
 ```
+

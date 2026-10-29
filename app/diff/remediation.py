@@ -62,3 +62,4 @@ def update_finding_remediation(
 
     logger.info("remediation_updated", finding_id=finding_id, updated_by=updated_by)
     return dict(row)
+

@@ -132,3 +132,4 @@ The baseline version before the industry upgrade. Includes:
 - Explainable 0–100 risk scoring
 - AI grounded analysis with dangerous-command blocking
 - JSON + HTML reporting
+

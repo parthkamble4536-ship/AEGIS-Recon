@@ -464,26 +464,60 @@ function renderFindings(findings, isHostDown = false) {
     }
 
     emptyMsg.classList.add('hidden');
-    container.innerHTML = findings.map(f => `
-        <div class="finding-card ${f.severity || 'informational'}">
+    container.innerHTML = findings.map(f => {
+        const status = f.analyst_status || 'new';
+        const decision = f.analyst_decision || 'pending';
+        const statusBadgeClass = {
+            new: 'badge-informational',
+            triaged: 'badge-confidence',
+            verified: 'badge-kev',
+            remediation_planned: 'badge-confidence',
+            remediated: 'badge-low',
+            closed: 'badge-low',
+            false_positive: 'badge-informational',
+            accepted_risk: 'badge-informational',
+        }[status] || 'badge-informational';
+
+        const remediationInfo = (f.remediation_fixed_version || f.remediation_advisory_url) ? `
+            <div class="finding-remediation">
+                <strong>Remediation:</strong>
+                ${f.remediation_vendor ? escapeHtml(f.remediation_vendor) + ' — ' : ''}
+                ${f.remediation_fixed_version ? 'Fix in v' + escapeHtml(f.remediation_fixed_version) : ''}
+                ${f.remediation_advisory_url ? ` <a href="${escapeHtml(f.remediation_advisory_url)}" target="_blank" rel="noopener noreferrer">Advisory</a>` : ''}
+            </div>` : '';
+
+        return `
+        <div class="finding-card ${f.severity || 'informational'}" id="finding-${escapeHtml(f.id || '')}">
             <div class="finding-header">
                 <span class="badge badge-${f.severity || 'informational'}">${f.severity || 'info'}</span>
-                ${f.is_kev ? '<span class="badge badge-kev">⚡ KEV</span>' : ''}
+                ${f.is_kev ? '<span class="badge badge-kev">&#9889; KEV</span>' : ''}
                 <span class="badge badge-confidence">Confidence: ${f.confidence || '?'}</span>
+                <span class="badge ${statusBadgeClass}">&#128100; ${status.replace('_', ' ')}</span>
                 <span class="finding-title">${escapeHtml(f.cve_id || 'Unknown')}</span>
             </div>
             <div class="finding-meta">
                 ${escapeHtml(f.product || '')} ${escapeHtml(f.version || '')} on
                 ${escapeHtml(f.ip || '')}:${f.port || '?'} (${escapeHtml(f.service_name || '')})
-                ${f.cvss_score ? ` • CVSS: ${f.cvss_score}` : ''}
-                ${f.priority_score ? ` • Priority: ${f.priority_score}` : ''}
+                ${f.cvss_score ? ` &bull; CVSS: ${f.cvss_score}` : ''}
+                ${f.priority_score ? ` &bull; Priority: ${f.priority_score}` : ''}
             </div>
             <div class="finding-meta" style="margin-top: 0.2rem;">
                 Evidence: <span class="badge badge-${f.evidence_type === 'external_intelligence' ? 'confidence' : 'informational'}">${f.evidence_type || '?'}</span>
+                ${decision !== 'pending' ? `&nbsp;&bull;&nbsp;Decision: <span class="badge badge-confidence">${decision.replace('_', ' ')}</span>` : ''}
             </div>
             ${f.evidence_detail ? `<div class="finding-evidence">${escapeHtml(truncate(f.evidence_detail, 200))}</div>` : ''}
-        </div>
-    `).join('');
+            ${remediationInfo}
+            <div class="analyst-actions" data-finding-id="${escapeHtml(f.id || '')}">
+                <span class="analyst-label">Analyst Actions:</span>
+                <button class="btn-analyst btn-verify" onclick="analystAction('${escapeHtml(f.id || '')}', 'verify')" title="Mark as verified and triaged">&#10003; Verify</button>
+                <button class="btn-analyst btn-fp" onclick="analystAction('${escapeHtml(f.id || '')}', 'false_positive')" title="Mark as false positive">&#10007; False Positive</button>
+                <button class="btn-analyst btn-accept" onclick="analystAction('${escapeHtml(f.id || '')}', 'accept_risk')" title="Accept the risk">&#9888; Accept Risk</button>
+                <button class="btn-analyst btn-remediate" onclick="analystAction('${escapeHtml(f.id || '')}', 'remediate')" title="Plan remediation">&#128295; Remediate</button>
+                <button class="btn-analyst btn-snooze" onclick="analystAction('${escapeHtml(f.id || '')}', 'snooze')" title="Snooze for later">&#128336; Snooze</button>
+                <button class="btn-analyst btn-why" onclick="showWhyFlagged('${escapeHtml(f.id || '')}')" title="Why was this flagged?">&#10067; Why?</button>
+            </div>
+        </div>`;
+    }).join('');
 }
 
 function renderAnalysisHTML(analysis, isHostDown = false) {
@@ -688,6 +722,104 @@ async function runAIAnalysisNow() {
         if (card) card.scrollIntoView({ behavior: 'smooth' });
     } catch (e) {
         showToast(`AI analysis failed: ${e.message}`, 'error');
+    }
+}
+
+// ─── Analyst Actions ──────────────────────────────────
+
+/**
+ * Perform an analyst decision action on a finding.
+ * Maps decision to the PATCH /api/findings/{id}/decision endpoint.
+ */
+async function analystAction(findingId, decision) {
+    if (!findingId) return;
+
+    const decisionLabels = {
+        verify: 'Verify',
+        false_positive: 'Mark as False Positive',
+        accept_risk: 'Accept Risk',
+        remediate: 'Plan Remediation',
+        snooze: 'Snooze',
+    };
+
+    // For false_positive, prompt for structured reason
+    let fpReason = null;
+    if (decision === 'false_positive') {
+        const reasons = [
+            'incorrect_version',
+            'backported_patch',
+            'not_applicable',
+            'compensating_control',
+            'duplicate',
+            'other',
+        ];
+        const prompt = `Select false positive reason:\n${reasons.map((r, i) => `${i + 1}. ${r.replace(/_/g, ' ')}`).join('\n')}\n\nEnter number (1-${reasons.length}):`;
+        const input = window.prompt(prompt, '1');
+        if (input === null) return;
+        const idx = parseInt(input, 10) - 1;
+        fpReason = reasons[Math.max(0, Math.min(isNaN(idx) ? 0 : idx, reasons.length - 1))] || 'other';
+    }
+
+    const reasonText = window.prompt(`Reason for "${decisionLabels[decision] || decision}" (optional):`, '');
+    if (reasonText === null) return;
+
+    try {
+        const body = {
+            decision,
+            decision_reason: reasonText,
+            decided_by: 'analyst',
+        };
+        if (fpReason) body.false_positive_reason = fpReason;
+
+        const res = await fetch(`${API_BASE}/findings/${findingId}/decision`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || `HTTP ${res.status}`);
+        }
+
+        showToast(`Decision recorded: ${decisionLabels[decision] || decision}`, 'success');
+        if (currentScanId) setTimeout(() => viewScanDetail(currentScanId), 500);
+    } catch (e) {
+        showToast(`Action failed: ${e.message}`, 'error');
+    }
+}
+
+/**
+ * Show the "Why did AEGIS flag this?" evidence chain for a finding.
+ */
+async function showWhyFlagged(findingId) {
+    if (!findingId) return;
+    try {
+        const res = await fetch(`${API_BASE}/findings/${findingId}/why`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        const count = data.evidence_count || 0;
+        const strongest = data.strongest_type || 'unknown';
+        const sources = (data.sources || []).join(', ') || 'none';
+        const items = (data.items || []);
+
+        let msg = `Evidence Chain\n${'='.repeat(40)}\n`;
+        msg += `Evidence items: ${count}\n`;
+        msg += `Strongest type: ${strongest}\n`;
+        msg += `Sources: ${sources}\n\n`;
+
+        if (items.length) {
+            items.forEach((item, i) => {
+                msg += `[${i + 1}] ${(item.source || '').toUpperCase()}: ${item.description || ''}\n`;
+            });
+        } else {
+            msg += data.explanation || 'No evidence records found.';
+        }
+
+        window.alert(msg);
+    } catch (e) {
+        showToast(`Could not load evidence: ${e.message}`, 'error');
     }
 }
 
