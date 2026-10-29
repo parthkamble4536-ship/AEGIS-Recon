@@ -800,24 +800,59 @@ async function showWhyFlagged(findingId) {
         const data = await res.json();
 
         const count = data.evidence_count || 0;
-        const strongest = data.strongest_type || 'unknown';
+        const strongest = (data.strongest_type || 'unknown').toUpperCase();
         const sources = (data.sources || []).join(', ') || 'none';
-        const items = (data.items || []);
+        const items = data.items || [];
 
-        let msg = `Evidence Chain\n${'='.repeat(40)}\n`;
-        msg += `Evidence items: ${count}\n`;
-        msg += `Strongest type: ${strongest}\n`;
-        msg += `Sources: ${sources}\n\n`;
+        const oldModal = document.getElementById('why-flagged-modal');
+        if (oldModal) oldModal.remove();
 
+        const modal = document.createElement('div');
+        modal.id = 'why-flagged-modal';
+        modal.className = 'modal-overlay';
+
+        let itemsHtml = '';
         if (items.length) {
-            items.forEach((item, i) => {
-                msg += `[${i + 1}] ${(item.source || '').toUpperCase()}: ${item.description || ''}\n`;
-            });
+            itemsHtml = items.map((item) => `
+                <div class="evidence-card">
+                    <div class="evidence-card-header">
+                        <span class="badge badge-${escapeHtml((item.evidence_type || item.type || '').toLowerCase())}">${escapeHtml((item.source || '').toUpperCase())} &bull; ${escapeHtml(item.evidence_type || item.type || '')}</span>
+                        <span style="color:var(--text-muted); font-size:0.75rem;">${escapeHtml(item.collected_at || '')}</span>
+                    </div>
+                    <div style="font-size:0.9rem; color:var(--text-primary); line-height:1.4;">${escapeHtml(item.description || '')}</div>
+                    ${item.source_reference ? `<div style="font-size:0.75rem; color:var(--accent);">Ref: ${escapeHtml(item.source_reference)}</div>` : ''}
+                    <div class="evidence-hash">SHA-256: ${escapeHtml(item.content_hash || '')}</div>
+                </div>
+            `).join('');
         } else {
-            msg += data.explanation || 'No evidence records found.';
+            itemsHtml = `<p style="color:var(--text-muted);">${escapeHtml(data.explanation || 'No evidence items recorded yet.')}</p>`;
         }
 
-        window.alert(msg);
+        modal.innerHTML = `
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3>&#128737;&#65039; Evidence Provenance Chain</h3>
+                    <button class="modal-close-btn" onclick="document.getElementById('why-flagged-modal').remove()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="evidence-meta">
+                        <div><strong>Evidence Records:</strong> ${count}</div>
+                        <div><strong>Strongest Level:</strong> <span class="badge badge-${escapeHtml(strongest.toLowerCase())}">${escapeHtml(strongest)}</span></div>
+                        <div><strong>Sources:</strong> ${escapeHtml(sources)}</div>
+                    </div>
+                    ${itemsHtml}
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" onclick="document.getElementById('why-flagged-modal').remove()">Close</button>
+                </div>
+            </div>
+        `;
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+
+        document.body.appendChild(modal);
     } catch (e) {
         showToast(`Could not load evidence: ${e.message}`, 'error');
     }

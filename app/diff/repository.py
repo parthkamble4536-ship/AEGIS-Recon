@@ -166,7 +166,6 @@ def get_finding_status_history(finding_id: str) -> list[dict[str, Any]]:
     Returns a list of audit events in chronological order.
     """
     with get_db() as conn:
-        conn.row_factory = None
         rows = conn.execute(
             """
             SELECT id, timestamp, user_id, action, target, detail

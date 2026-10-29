@@ -188,8 +188,63 @@ def explain_why_flagged(finding_id: str) -> dict[str, Any]:
     Construct a human-readable explanation for why AEGIS flagged this finding.
 
     Returns a dict suitable for API response or dashboard display.
+    If no pre-existing evidence records are stored for this finding,
+    it automatically synthesizes and persists the evidence chain.
     """
     chain = build_evidence_chain(finding_id)
+    if not chain.items:
+        try:
+            from app.db.repository import get_finding
+
+            finding = get_finding(finding_id)
+        except Exception:
+            finding = None
+        if finding:
+            cve_id = finding.get("cve_id") or "UNKNOWN"
+            version = finding.get("version") or ""
+            ip = finding.get("ip") or "target"
+            port = finding.get("port") or 0
+            proto = finding.get("protocol") or "tcp"
+            svc = finding.get("service_name") or "service"
+            product = finding.get("product") or ""
+            banner_desc = f"{product} {version}".strip() or svc
+            ev_detail = finding.get("evidence_detail") or ""
+            confidence = finding.get("confidence") or "medium"
+            is_kev = bool(finding.get("is_kev"))
+
+            # 1. Directly observed Nmap evidence
+            record_nmap_evidence(
+                finding_id=finding_id,
+                description=f"Port {port}/{proto} observed open running {banner_desc} on host {ip}.",
+                raw_nmap_output=f"port={port} proto={proto} service={svc} product={product} version={version}",
+            )
+
+            # 2. Version match hypothesis
+            record_version_match_hypothesis(
+                finding_id=finding_id,
+                cve_id=cve_id,
+                matched_version=version or "detected",
+                match_method=f"confidence_{confidence}",
+            )
+
+            # 3. NVD Intelligence
+            record_nvd_evidence(
+                finding_id=finding_id,
+                cve_id=cve_id,
+                description=ev_detail or finding.get("description") or f"Intelligence correlated for {cve_id}",
+            )
+
+            # 4. KEV if applicable
+            if is_kev:
+                record_kev_evidence(
+                    finding_id=finding_id,
+                    cve_id=cve_id,
+                    kev_due_date=finding.get("kev_due_date") or "",
+                )
+
+            # Rebuild chain with newly created evidence
+            chain = build_evidence_chain(finding_id)
+
     if not chain.items:
         return {
             "finding_id": finding_id,
@@ -208,5 +263,16 @@ def explain_why_flagged(finding_id: str) -> dict[str, Any]:
 
     result = chain.summary()
     result["explanation"] = explanation
+    result["items"] = [
+        {
+            "evidence_id": e.evidence_id,
+            "evidence_type": e.evidence_type.value,
+            "source": e.source.value,
+            "source_reference": e.source_reference,
+            "collected_at": e.collected_at,
+            "content_hash": e.content_hash,
+            "description": e.description,
+        }
+        for e in chain.items
+    ]
     return result
-

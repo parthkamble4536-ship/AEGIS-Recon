@@ -41,7 +41,6 @@ def _get_scan_findings(scan_id: str) -> list[dict[str, Any]]:
         cvss_score, severity, priority_score, is_kev, confidence, evidence_type
     """
     with get_db() as conn:
-        conn.row_factory = None  # use tuple rows, convert manually
         rows = conn.execute(
             """
             SELECT
@@ -76,7 +75,6 @@ def _get_scan_findings(scan_id: str) -> list[dict[str, Any]]:
 def _get_scan_services(scan_id: str) -> list[dict[str, Any]]:
     """Retrieve all services for a scan, joined with host info."""
     with get_db() as conn:
-        conn.row_factory = None
         rows = conn.execute(
             """
             SELECT

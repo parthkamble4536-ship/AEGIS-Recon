@@ -44,7 +44,6 @@ def create_evidence(evidence: Evidence) -> Evidence:
 def get_evidence(evidence_id: str) -> Evidence | None:
     """Retrieve a single Evidence record by ID."""
     with get_db() as conn:
-        conn.row_factory = None
         row = conn.execute(
             "SELECT evidence_id, finding_id, evidence_type, source, source_reference, "
             "collected_at, content_hash, description, raw_data FROM evidence WHERE evidence_id = ?",
@@ -59,7 +58,6 @@ def get_evidence(evidence_id: str) -> Evidence | None:
 def list_evidence_for_finding(finding_id: str) -> list[Evidence]:
     """Return all evidence records for a given finding, oldest first."""
     with get_db() as conn:
-        conn.row_factory = None
         rows = conn.execute(
             "SELECT evidence_id, finding_id, evidence_type, source, source_reference, "
             "collected_at, content_hash, description, raw_data "

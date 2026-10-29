@@ -129,6 +129,7 @@ class EvidenceChain:
                     "source": e.source.value,
                     "source_reference": e.source_reference,
                     "collected_at": e.collected_at,
+                    "content_hash": e.content_hash,
                     "description": e.description,
                 }
                 for e in self.items
