@@ -158,9 +158,10 @@ pytest tests/integration/
 | Phase 5 — Scan Diff + Vulnerability Lifecycle | ✅ | 418 | `7c5cef5` |
 | Phase 6 — Evidence and Provenance Engine | ✅ | 441 | `9f25bb3` |
 | Phase 7 — Analyst Workflow | ✅ | 462 | `01a387d` |
-| Phase 8 — CI/CD and Repository Hardening | ✅ | 462 | latest |
+| Phase 8 — CI/CD and Repository Hardening | ✅ | 462 | `883b67c` |
+| Phase 9 — Evaluation Framework + AI Security Tests | ✅ | 534 | `189b7ad` |
 
-**Current: 462 tests passing, 0 failing**
+**Current: 534 tests passing, 0 failing**
 
 ### Baseline (`v0.2.0-baseline`)
 - Target validation, allowlist enforcement, injection resistance

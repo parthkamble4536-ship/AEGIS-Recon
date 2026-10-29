@@ -109,13 +109,48 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   - `PATCH /api/findings/{id}/remediation` — set remediation guidance
 - `tests/unit/test_analyst_workflow.py` — 21 new tests
 
-### Phase 8 — CI/CD and Repository Hardening (this commit)
+### Phase 8 — CI/CD and Repository Hardening (`883b67c`)
+**462 tests**
 #### Added
 - `.github/workflows/ci.yml` — GitHub Actions CI: Ruff → Bandit → pip-audit → pytest + coverage
 - `SECURITY.md` — vulnerability reporting policy, safe-use requirements
 - `CONTRIBUTING.md` — development setup, safety rules, PR checklist
 - `CHANGELOG.md` — this file
 - `.env.example` — environment variable documentation
+
+### Phase 9 — Evaluation Framework + AI Security Tests (`189b7ad`)
+**534 tests**
+#### Added
+- `tests/evaluation/test_correlation_accuracy.py` — 31 evaluation tests across 4 fixtures:
+  - Metasploitable 2: vsftpd, openssh, samba, mysql CVE detection
+  - Metasploitable 3 Linux: proftpd, elasticsearch, tomcat CVE detection
+  - Metasploitable 3 Windows: jenkins, glassfish, elasticsearch CVE detection
+  - Kioptrix: apache, samba, openssl, openssh CVE detection
+  - Precision / Recall / F1 metric computation helper tests
+  - Ground truth schema validation
+- `tests/evaluation/test_performance.py` — 5 performance benchmarks:
+  - Diff engine: 10 findings < 1s, 100 findings < 2s
+  - Risk scoring: 50 findings < 2s, 100 findings < 5s
+  - Evidence chain construction: 20 chains < 1s
+- `data/evaluation/ground_truth.json` — Ground truth labels for all 4 fixtures
+- `pyproject.toml` — `evaluation` pytest marker registered
+- `tests/security/ai/test_ai_safety.py` — 36 AI safety tests:
+  - ValidOutputAccepted (4): well-formed JSON passes through correctly
+  - CVEHallucinationBlocked (5): fabricated CVEs rejected from AI output
+  - DangerousPatternsBlocked (11): command injection / RCE patterns blocked
+  - SchemaValidation (6): missing fields / wrong types rejected
+  - LengthLimits (4): oversized content rejected
+  - ClaimGrounding (6): grounding check returns SUPPORTED/UNSUPPORTED/UNCHECKED
+- `app/ai/validator.py` — Enhanced:
+  - 7 new dangerous patterns: `nc -e`, `python -c import`, `powershell -enc`,
+    `/bin/sh`, `eval(`, `exec(`, `__import__`
+  - `check_claim_grounding(claim, allowed_cves)` function
+- `docs/architecture/README.md` — System flow diagram, module map, evidence model table
+- `docs/api/README.md` — Complete REST API reference (all endpoints)
+
+#### Updated
+- UI: Analyst action buttons (Verify / False Positive / Accept Risk / Remediate / Snooze / Why Flagged)
+- UI: Evidence chain modal for "Why was this flagged?"
 
 ---
 
