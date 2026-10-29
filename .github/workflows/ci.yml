@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, "feature/**", "fix/**"]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    name: "Test & Security (${{ matrix.python-version }})"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      # ── Lint ──────────────────────────────────────────────────────────────
+
+      - name: Ruff lint check
+        run: ruff check .
+
+      - name: Ruff format check
+        run: ruff format --check .
+
+      # ── Security ──────────────────────────────────────────────────────────
+
+      - name: Bandit security scan
+        run: bandit -r app/ -c pyproject.toml -q
+
+      - name: pip-audit dependency vulnerability check
+        run: |
+          pip install pip-audit
+          pip-audit --require-hashes -r requirements.txt || true
+          # 'true' so audit findings do not block CI until we have a hash file
+          # TODO: remove '|| true' once requirements.txt has hashes
+
+      - name: Detect secrets (trufflesecurity/trufflehog)
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: HEAD~1
+          head: HEAD
+          extra_args: --only-verified
+        continue-on-error: true
+        # continue-on-error: trufflehog treats no-prior-commit as error on first push
+
+      # ── Tests ─────────────────────────────────────────────────────────────
+
+      - name: Run unit tests with coverage
+        run: |
+          pytest tests/ -q --tb=short -m "not integration" \
+            --cov=app --cov-report=term-missing --cov-report=xml \
+            --junitxml=test-results.xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+        continue-on-error: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.python-version }}
+          path: test-results.xml

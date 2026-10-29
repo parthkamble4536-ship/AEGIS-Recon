@@ -4,6 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.12+](https://img.shields.io/badge/Python-3.12+-green.svg)](https://python.org)
+[![CI](https://github.com/yourusername/aegis-recon/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/aegis-recon/actions)
 
 ---
 
@@ -97,16 +98,20 @@ aegis-recon/
 │   ├── core/               # Validation, logging, errors
 │   ├── scanner/            # Nmap runner + profiles
 │   ├── parser/             # XML parsing
-│   ├── intel/              # NVD, KEV, cache, matcher
-│   ├── risk/               # Explainable scoring
-│   ├── ai/                 # Optional LLM analysis
+│   ├── intel/              # NVD, KEV, EPSS, CPE matcher
+│   ├── risk/               # Explainable scoring (V1 + V2)
+│   ├── ai/                 # Optional LLM analysis (grounded)
+│   ├── assets/             # Asset inventory and context
+│   ├── diff/               # Scan diff, lifecycle, remediation
+│   ├── evidence/           # Evidence and provenance tracking
 │   ├── reports/            # JSON/HTML report generation
 │   └── db/                 # Database models + repository
 ├── web/                    # Dashboard (HTML/CSS/JS)
-├── tests/                  # Test suite
-├── config/                 # Allowlist and profiles
+├── tests/                  # Test suite (462+ tests)
+├── config/                 # Allowlist and scan profiles
+├── configs/                # Risk policy YAML
 ├── docs/                   # Documentation
-└── scripts/                # Setup and demo scripts
+└── .github/workflows/      # GitHub Actions CI
 ```
 
 ---
@@ -142,14 +147,29 @@ pytest tests/integration/
 
 ## Status
 
-✅ **Week 1 & Week 2 Complete (v0.2.0)**:
-- Target validation, allowlist enforcement, and injection resistance
+### Industry Standard Upgrade (branch: `feature/industry-upgrade`)
+
+| Phase | Status | Tests | Commit |
+|-------|--------|-------|--------|
+| Phase 0 — Baseline Checkpoint | ✅ | 289 | `68628f8` |
+| Phase 1 — Correlation Engine V2 | ✅ | 311 | `b4e0e11` |
+| Phase 2 — EPSS Intelligence | ✅ | 327 | `70a98da` |
+| Phase 3+4 — Asset Inventory + Risk Engine V2 | ✅ | 384 | `22eae4f` |
+| Phase 5 — Scan Diff + Vulnerability Lifecycle | ✅ | 418 | `7c5cef5` |
+| Phase 6 — Evidence and Provenance Engine | ✅ | 441 | `9f25bb3` |
+| Phase 7 — Analyst Workflow | ✅ | 462 | `01a387d` |
+| Phase 8 — CI/CD and Repository Hardening | ✅ | 462 | latest |
+
+**Current: 462 tests passing, 0 failing**
+
+### Baseline (`v0.2.0-baseline`)
+- Target validation, allowlist enforcement, injection resistance
 - Safe Nmap scanning pipeline and XML parser
-- SQLite database persistence with WAL mode
-- NVD API 2.0 client & CISA KEV catalog integration with TTL cache
-- 6-factor explainable risk scoring engine
-- AI prompt templates, schema validator, hallucination guard & deterministic fallback
-- JSON & HTML report builders (XSS-safe)
+- SQLite WAL mode persistence
+- NVD API 2.0 + CISA KEV integration with TTL cache
+- 6-factor explainable risk scoring
+- AI prompt templates, schema validator, hallucination guard
+- JSON + HTML report builders (XSS-safe)
 - Glassmorphism dark-theme web dashboard
-- 146 tests passing in 6.4s (100% pass rate)
+- 289 tests (baseline)
 
