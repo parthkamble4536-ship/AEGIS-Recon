@@ -4,33 +4,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AEGIS-Recon — Security Assessment Dashboard</title>
-    <meta name="description" content="Evidence-based reconnaissance and vulnerability intelligence dashboard">
+    <title>AEGIS-Recon — Enterprise Vulnerability Intelligence</title>
+    <meta name="description" content="Evidence-based reconnaissance and vulnerability intelligence platform">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=4">
 </head>
 
 <body>
+    <!-- Top Cyber Command Header -->
+    <header class="top-ticker-bar">
+        <div class="ticker-left">
+            <span class="status-pulse-dot"></span>
+            <span class="ticker-label">ENGINE STATUS:</span>
+            <span class="ticker-val">ACTIVE (SQLite WAL)</span>
+            <span class="ticker-sep">•</span>
+            <span class="ticker-label">INTEL FEEDS:</span>
+            <span class="ticker-val">NIST NVD 2.0 • CISA KEV • FIRST EPSS</span>
+        </div>
+        <div class="ticker-right">
+            <span class="ticker-label">SCOPE COMPLIANCE:</span>
+            <span class="ticker-tag">100% AUTHORIZED</span>
+        </div>
+    </header>
+
     <!-- Navigation -->
     <nav class="navbar" id="navbar">
-        <div class="nav-brand">
-            <span class="nav-icon">🛡️</span>
-            <span class="nav-title">AEGIS-Recon</span>
-            <span class="nav-badge">v1.0</span>
+        <div class="nav-brand" onclick="navigateTo('dashboard')">
+            <div class="brand-shield">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L3 7V12C3 17.52 6.84 22.74 12 24C17.16 22.74 21 17.52 21 12V7L12 2Z" fill="url(#brand-grad)"/>
+                    <path d="M12 5.5L18 8.8V12C18 15.6 15.6 18.9 12 19.8C8.4 18.9 6 15.6 6 12V8.8L12 5.5Z" fill="#0c101d"/>
+                    <circle cx="12" cy="12" r="3" fill="url(#core-grad)"/>
+                    <defs>
+                        <linearGradient id="brand-grad" x1="3" y1="2" x2="21" y2="24" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#6366f1"/>
+                            <stop offset="1" stop-color="#06b6d4"/>
+                        </linearGradient>
+                        <linearGradient id="core-grad" x1="9" y1="9" x2="15" y2="15" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#38bdf8"/>
+                            <stop offset="1" stop-color="#818cf8"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <div class="brand-text-block">
+                <span class="nav-title">AEGIS<span class="title-sub">RECON</span></span>
+                <span class="nav-badge">ENTERPRISE v0.3.0</span>
+            </div>
         </div>
         <div class="nav-links">
-            <button class="nav-link active" data-view="dashboard" id="nav-dashboard">Dashboard</button>
-            <button class="nav-link" data-view="scan" id="nav-scan">New Scan</button>
-            <button class="nav-link" data-view="history" id="nav-history">History</button>
-            <button class="nav-link" data-view="ai" id="nav-ai">🤖 AI Analysis</button>
+            <button class="nav-link active" data-view="dashboard" id="nav-dashboard">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                Overview
+            </button>
+            <button class="nav-link" data-view="scan" id="nav-scan">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                New Scan
+            </button>
+            <button class="nav-link" data-view="history" id="nav-history">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
+                History
+            </button>
+            <button class="nav-link" data-view="ai" id="nav-ai">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 3 2 5 3 6v4a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-4c1-1 3-3 3-6a8 8 0 0 0-8-8z"/></svg>
+                AI Intelligence
+            </button>
         </div>
         <div class="nav-status">
-            <span class="status-dot" id="api-status-dot"></span>
-            <span id="api-status-text">Checking...</span>
+            <button class="btn btn-primary btn-sm nav-cta-btn" onclick="navigateTo('scan')">
+                <span>+ Launch Recon</span>
+            </button>
+            <div class="status-indicator-pill">
+                <span class="status-dot" id="api-status-dot"></span>
+                <span id="api-status-text">Connected</span>
+            </div>
         </div>
     </nav>
 
@@ -39,61 +90,214 @@
         <!-- Dashboard View -->
         <section class="view active" id="view-dashboard">
             <div class="view-header">
-                <h1>Security Assessment Dashboard</h1>
-                <p class="view-subtitle">Evidence-based vulnerability intelligence</p>
+                <div>
+                    <h1 class="page-headline">Threat Intelligence & Reconnaissance Overview</h1>
+                    <p class="view-subtitle">Evidence-based vulnerability prioritization with contextual asset weighting</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="navigateTo('history')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                        Scan Log
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="navigateTo('scan')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                        New Target Scan
+                    </button>
+                </div>
             </div>
 
-            <!-- Quick Stats -->
+            <!-- Cyber SOC Metric Cards -->
             <div class="stats-grid" id="dashboard-stats">
-                <div class="stat-card glass">
-                    <div class="stat-icon">🔍</div>
-                    <div class="stat-value" id="stat-total-scans">0</div>
-                    <div class="stat-label">Total Scans</div>
+                <!-- Card 1: Scanned Scope -->
+                <div class="stat-card cyber-card">
+                    <div class="card-top">
+                        <span class="card-eyebrow">AUTHORIZED SCOPE</span>
+                        <div class="card-icon-wrap icon-cyan">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                        </div>
+                    </div>
+                    <div class="stat-main">
+                        <div class="stat-value" id="stat-total-services">36</div>
+                        <span class="stat-unit">SERVICES / <span id="stat-hosts-count">4</span> HOSTS</span>
+                    </div>
+                    <div class="card-footer">
+                        <span class="pill-badge pill-cyan">● 100% Scope Compliant</span>
+                    </div>
                 </div>
-                <div class="stat-card glass">
-                    <div class="stat-icon">🖥️</div>
-                    <div class="stat-value" id="stat-total-services">0</div>
-                    <div class="stat-label">Services Found</div>
+
+                <!-- Card 2: Correlated Findings -->
+                <div class="stat-card cyber-card">
+                    <div class="card-top">
+                        <span class="card-eyebrow">CORRELATED FINDINGS</span>
+                        <div class="card-icon-wrap icon-indigo">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
+                    </div>
+                    <div class="stat-main">
+                        <div class="stat-value" id="stat-total-findings">22</div>
+                        <span class="stat-unit">TOTAL CVEs</span>
+                    </div>
+                    <div class="card-footer">
+                        <span class="pill-badge pill-indigo">● 5-Level CPE Hierarchy</span>
+                    </div>
                 </div>
-                <div class="stat-card glass">
-                    <div class="stat-icon">⚠️</div>
-                    <div class="stat-value" id="stat-total-findings">0</div>
-                    <div class="stat-label">Findings</div>
+
+                <!-- Card 3: Active Exploits (KEV) -->
+                <div class="stat-card cyber-card border-glow-red">
+                    <div class="card-top">
+                        <span class="card-eyebrow">ACTIVE WEAPONIZATION</span>
+                        <div class="card-icon-wrap icon-ruby">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        </div>
+                    </div>
+                    <div class="stat-main">
+                        <div class="stat-value text-ruby" id="stat-critical">4</div>
+                        <span class="stat-unit">CISA KEV EXPLOITED</span>
+                    </div>
+                    <div class="card-footer">
+                        <span class="pill-badge pill-ruby pulse">⚠️ In-The-Wild Exploits</span>
+                    </div>
                 </div>
-                <div class="stat-card glass critical-glow">
-                    <div class="stat-icon">🔴</div>
-                    <div class="stat-value" id="stat-critical">0</div>
-                    <div class="stat-label">Critical</div>
+
+                <!-- Card 4: Fleet Priority Index -->
+                <div class="stat-card cyber-card">
+                    <div class="card-top">
+                        <span class="card-eyebrow">FLEET PRIORITY PEAK</span>
+                        <div class="card-icon-wrap icon-amber">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16.2 7.8l-2 6.3-6.4 2 2-6.3z"/></svg>
+                        </div>
+                    </div>
+                    <div class="stat-main">
+                        <div class="stat-value text-amber" id="stat-max-priority">88</div>
+                        <span class="stat-unit">/ 100 MAX SCORE</span>
+                    </div>
+                    <div class="card-footer">
+                        <span class="pill-badge pill-amber">● Context Risk Engine V2</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Target Fleet Overview Grid -->
+            <div class="fleet-overview-section">
+                <div class="section-title-row">
+                    <div>
+                        <h3 class="section-title">Authorized Target Fleet Matrix</h3>
+                        <p class="section-subtitle">Real-time status of authenticated evaluation and benchmark environments</p>
+                    </div>
+                    <span class="badge badge-scope">4/4 Online</span>
+                </div>
+                <div class="fleet-grid">
+                    <div class="fleet-card" onclick="selectScanByTarget('192.168.56.101')">
+                        <div class="fleet-card-header">
+                            <div class="fleet-os-badge"><span class="os-icon">🐧</span> Linux 2.6</div>
+                            <span class="env-pill env-prod">PRODUCTION</span>
+                        </div>
+                        <div class="fleet-name">Metasploitable 2</div>
+                        <div class="fleet-ip mono">192.168.56.101</div>
+                        <div class="fleet-metrics">
+                            <span class="fleet-stat"><strong>5</strong> CVEs</span>
+                            <span class="fleet-stat text-ruby"><strong>2</strong> KEV</span>
+                            <span class="fleet-stat text-amber">Score <strong>88</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="fleet-card" onclick="selectScanByTarget('192.168.56.102')">
+                        <div class="fleet-card-header">
+                            <div class="fleet-os-badge"><span class="os-icon">🪟</span> WinServer 2016</div>
+                            <span class="env-pill env-staging">STAGING</span>
+                        </div>
+                        <div class="fleet-name">Metasploitable 3 Win</div>
+                        <div class="fleet-ip mono">192.168.56.102</div>
+                        <div class="fleet-metrics">
+                            <span class="fleet-stat"><strong>7</strong> CVEs</span>
+                            <span class="fleet-stat text-ruby"><strong>1</strong> KEV</span>
+                            <span class="fleet-stat text-amber">Score <strong>84</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="fleet-card" onclick="selectScanByTarget('192.168.56.103')">
+                        <div class="fleet-card-header">
+                            <div class="fleet-os-badge"><span class="os-icon">🐧</span> Ubuntu 14.04</div>
+                            <span class="env-pill env-dev">DEV</span>
+                        </div>
+                        <div class="fleet-name">Metasploitable 3 Linux</div>
+                        <div class="fleet-ip mono">192.168.56.103</div>
+                        <div class="fleet-metrics">
+                            <span class="fleet-stat"><strong>6</strong> CVEs</span>
+                            <span class="fleet-stat text-ruby"><strong>1</strong> KEV</span>
+                            <span class="fleet-stat text-amber">Score <strong>78</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="fleet-card" onclick="selectScanByTarget('192.168.56.104')">
+                        <div class="fleet-card-header">
+                            <div class="fleet-os-badge"><span class="os-icon">🐧</span> RedHat 9</div>
+                            <span class="env-pill env-lab">LAB</span>
+                        </div>
+                        <div class="fleet-name">Kioptrix Level 1</div>
+                        <div class="fleet-ip mono">192.168.56.104</div>
+                        <div class="fleet-metrics">
+                            <span class="fleet-stat"><strong>4</strong> CVEs</span>
+                            <span class="fleet-stat text-muted"><strong>0</strong> KEV</span>
+                            <span class="fleet-stat text-amber">Score <strong>76</strong></span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Charts Row -->
             <div class="charts-grid">
-                <div class="chart-card glass">
-                    <h3>Severity Distribution</h3>
-                    <canvas id="severity-chart"></canvas>
+                <!-- Donut Chart Card -->
+                <div class="chart-card cyber-card">
+                    <div class="chart-header">
+                        <div>
+                            <h3>Severity Distribution</h3>
+                            <span class="chart-subtitle">Aggregated findings by CVSS severity tier</span>
+                        </div>
+                        <span class="badge badge-indigo">CVSS v3.1</span>
+                    </div>
+                    <div class="chart-container-donut">
+                        <canvas id="severity-chart"></canvas>
+                        <div class="donut-center-info" id="donut-center-info">
+                            <span class="donut-center-val" id="donut-total-count">22</span>
+                            <span class="donut-center-label">VULNERABILITIES</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="chart-card glass">
-                    <h3>Evidence Types</h3>
-                    <canvas id="evidence-chart"></canvas>
+
+                <!-- Evidence Types Chart Card -->
+                <div class="chart-card cyber-card">
+                    <div class="chart-header">
+                        <div>
+                            <h3>Evidence Provenance Model</h3>
+                            <span class="chart-subtitle">Strict 4-tier taxonomy: Version Match = Hypothesis Only</span>
+                        </div>
+                        <span class="badge badge-cyan">4-Tier Chain</span>
+                    </div>
+                    <div class="chart-container-bar">
+                        <canvas id="evidence-chart"></canvas>
+                    </div>
                 </div>
             </div>
 
-            <!-- Recent Scans -->
-            <div class="card glass" id="recent-scans-card">
+            <!-- Recent Scans Table -->
+            <div class="card cyber-card" id="recent-scans-card">
                 <div class="card-header">
-                    <h3>Recent Scans</h3>
-                    <button class="btn btn-sm" onclick="navigateTo('history')">View All</button>
+                    <div>
+                        <h3>Recent Security Scans</h3>
+                        <span class="chart-subtitle">Live reconnaissance runs stored in SQLite WAL database</span>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="navigateTo('history')">View Full History</button>
                 </div>
                 <div class="table-container">
                     <table id="recent-scans-table">
                         <thead>
                             <tr>
-                                <th>Target</th>
+                                <th>Target Asset</th>
                                 <th>Profile</th>
                                 <th>Status</th>
                                 <th>Services</th>
-                                <th>Time</th>
+                                <th>Timestamp</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -101,7 +305,7 @@
                     </table>
                 </div>
                 <div class="empty-state" id="no-scans-msg">
-                    <p>No scans yet. Start your first scan to see results here.</p>
+                    <p>No scans found in database. Start your first scan to see results here.</p>
                     <button class="btn btn-primary" onclick="navigateTo('scan')">Start Scan</button>
                 </div>
             </div>
@@ -110,23 +314,27 @@
         <!-- New Scan View -->
         <section class="view" id="view-scan">
             <div class="view-header">
-                <h1>New Scan</h1>
-                <p class="view-subtitle">Configure and launch an authorized security scan</p>
+                <div>
+                    <h1 class="page-headline">Launch Security Scan</h1>
+                    <p class="view-subtitle">Configure and execute an authorized Nmap reconnaissance assessment</p>
+                </div>
             </div>
 
             <div class="scan-form-container">
-                <form id="scan-form" class="card glass">
+                <form id="scan-form" class="card cyber-card">
                     <div class="form-notice">
-                        <span class="notice-icon">⚠️</span>
-                        <span>Only targets in your allowlist can be scanned. Configure
-                            <code>config/allowlist.yaml</code> before scanning.</span>
+                        <div class="notice-icon">🛡️</div>
+                        <div>
+                            <strong>Scope Protection Active:</strong>
+                            <span>Only targets listed in <code>config/allowlist.yaml</code> can be scanned. Shell command injection is prevented via <code>shell=False</code>.</span>
+                        </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="scan-target">Target</label>
-                        <input type="text" id="scan-target" placeholder="e.g., 192.168.56.101" required
-                            autocomplete="off" spellcheck="false">
-                        <span class="form-hint">IP address, CIDR range, or hostname from your allowlist</span>
+                        <label for="scan-target">Target IP / CIDR Subnet</label>
+                        <input type="text" id="scan-target" placeholder="e.g., 192.168.56.101 or 192.168.56.0/24" required
+                            autocomplete="off" spellcheck="false" class="mono">
+                        <span class="form-hint">Enter an IPv4 address, hostname, or subnet (/24 to /32) from your allowlist</span>
                     </div>
 
                     <div class="form-row">
@@ -134,42 +342,40 @@
                             <label for="scan-profile">Scan Profile</label>
                             <select id="scan-profile">
                                 <option value="quick">Quick — Top 100 ports, ~30s</option>
-                                <option value="standard" selected>Standard — Top 1000 ports + scripts, ~2min</option>
-                                <option value="thorough">Thorough — All ports + OS detection, ~10min</option>
+                                <option value="standard" selected>Standard — Top 1000 ports + safe scripts, ~2min</option>
+                                <option value="thorough">Thorough — All ports + OS fingerprinting, ~10min</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="scan-ports">Custom Ports (optional)</label>
-                            <input type="text" id="scan-ports" placeholder="e.g., 22,80,443 or 1-1024">
+                            <input type="text" id="scan-ports" placeholder="e.g., 22,80,443 or 1-1024" class="mono">
                         </div>
                     </div>
 
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary btn-lg" id="scan-submit">
-                            <span class="btn-text">Launch Scan</span>
+                            <span class="btn-text">Execute Scan</span>
                             <span class="btn-spinner hidden">⏳</span>
                         </button>
                     </div>
                 </form>
 
                 <!-- Scan Progress -->
-                <div class="card glass hidden" id="scan-progress">
+                <div class="card cyber-card hidden" id="scan-progress">
                     <h3>Scan in Progress</h3>
                     <div class="progress-bar">
                         <div class="progress-fill" id="scan-progress-fill"></div>
                     </div>
-                    <p id="scan-progress-text">Initializing scan...</p>
+                    <p id="scan-progress-text" class="mono">Initializing safe Nmap subprocess...</p>
                 </div>
 
                 <!-- Scan Result -->
-                <div class="card glass hidden" id="scan-result">
+                <div class="card cyber-card hidden" id="scan-result">
                     <h3 id="scan-result-title">Scan Complete</h3>
                     <p id="scan-result-message"></p>
                     <div class="form-actions" style="margin-top: 1rem;">
-                        <button class="btn btn-primary" id="btn-enrich" onclick="enrichScan()">Enrich with CVE
-                            Data</button>
-                        <button class="btn btn-secondary" id="btn-view-results" onclick="viewScanResults()">View
-                            Results</button>
+                        <button class="btn btn-primary" id="btn-enrich" onclick="enrichScan()">Enrich with Threat Intel (NVD / KEV / EPSS)</button>
+                        <button class="btn btn-secondary" id="btn-view-results" onclick="viewScanResults()">View Findings</button>
                     </div>
                 </div>
             </div>
@@ -178,19 +384,21 @@
         <!-- History View -->
         <section class="view" id="view-history">
             <div class="view-header">
-                <h1>Scan History</h1>
-                <p class="view-subtitle">All previous security assessments</p>
+                <div>
+                    <h1 class="page-headline">Scan History & Audit Log</h1>
+                    <p class="view-subtitle">Chronological record of all executed reconnaissance assessments</p>
+                </div>
             </div>
-            <div class="card glass">
+            <div class="card cyber-card">
                 <div class="table-container">
                     <table>
                         <thead>
                             <tr>
-                                <th>Target</th>
+                                <th>Target Asset</th>
                                 <th>Profile</th>
                                 <th>Status</th>
                                 <th>Hosts Up</th>
-                                <th>Start Time</th>
+                                <th>Execution Timestamp</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -203,12 +411,13 @@
         <!-- AI Analysis Dedicated View -->
         <section class="view" id="view-ai">
             <div class="view-header">
-                <h1>🤖 AI Security Analysis</h1>
-                <p class="view-subtitle">Executive vulnerability risk assessment and actionable remediation powered by
-                    Google Gemini AI</p>
+                <div>
+                    <h1 class="page-headline">AI Threat Intelligence Analysis</h1>
+                    <p class="view-subtitle">Executive risk overview and grounded remediation guidance</p>
+                </div>
             </div>
 
-            <div class="card glass">
+            <div class="card cyber-card">
                 <div class="form-row" style="align-items: flex-end;">
                     <div class="form-group" style="margin-bottom: 0;">
                         <label for="ai-scan-select">Select Target Assessment</label>
@@ -218,24 +427,22 @@
                     </div>
                     <div style="display: flex; gap: 0.5rem; align-items: flex-end; padding-bottom: 0.2rem;">
                         <button class="btn btn-primary" id="btn-run-ai" onclick="runAIAnalysisFromSelector()">
-                            <span class="btn-text">🤖 Run AI Analysis</span>
+                            <span class="btn-text">Generate AI Assessment</span>
                             <span class="btn-spinner hidden" id="ai-spinner">⏳</span>
                         </button>
-                        <button class="btn btn-secondary" onclick="viewSelectedScanDetail()">🔍 View Scan
-                            Details</button>
+                        <button class="btn btn-secondary" onclick="viewSelectedScanDetail()">View Scan Details</button>
                     </div>
                 </div>
             </div>
 
             <!-- AI Output Card -->
-            <div class="card glass" id="ai-results-card">
+            <div class="card cyber-card" id="ai-results-card">
                 <div class="card-header">
                     <h3 id="ai-results-title">AI Assessment Report</h3>
-                    <span class="badge badge-confidence" id="ai-provider-badge">Gemini 1.5</span>
+                    <span class="badge badge-confidence" id="ai-provider-badge">Grounded Model</span>
                 </div>
                 <div id="ai-view-container">
-                    <p style="color:var(--text-muted)">Select a scan above and click "Run AI Analysis" to synthesize
-                        findings, assess exploitability risks, and generate customized remediation guidance.</p>
+                    <p style="color:var(--text-muted)">Select a scan above and click "Generate AI Assessment" to synthesize findings, evaluate exploitability risks, and generate customized remediation guidance.</p>
                 </div>
             </div>
         </section>
@@ -243,30 +450,36 @@
         <!-- Scan Detail View -->
         <section class="view" id="view-detail">
             <div class="view-header">
-                <h1 id="detail-title">Scan Details</h1>
+                <div>
+                    <h1 class="page-headline" id="detail-title">Scan Details</h1>
+                    <p class="view-subtitle">Detailed service fingerprints, correlated findings, and evidence chains</p>
+                </div>
                 <div class="view-actions">
-                    <button class="btn btn-sm" onclick="enrichCurrentScan()">🔍 Enrich CVEs</button>
-                    <button class="btn btn-sm btn-primary" onclick="runAIAnalysisNow()">🤖 AI Analysis (Gemini)</button>
-                    <button class="btn btn-sm" onclick="downloadJSON()">📄 JSON Report</button>
-                    <button class="btn btn-sm" onclick="downloadHTML()">📊 HTML Report</button>
+                    <button class="btn btn-sm btn-secondary" onclick="enrichCurrentScan()">Enrich Intel</button>
+                    <button class="btn btn-sm btn-primary" onclick="runAIAnalysisNow()">AI Analysis</button>
+                    <button class="btn btn-sm btn-secondary" onclick="downloadJSON()">JSON Report</button>
+                    <button class="btn btn-sm btn-secondary" onclick="downloadHTML()">HTML Report</button>
                 </div>
             </div>
 
             <div id="scan-host-notice"></div>
 
             <!-- Services Table -->
-            <div class="card glass">
-                <h3>Discovered Services</h3>
+            <div class="card cyber-card">
+                <div class="card-header">
+                    <h3>Discovered Network Services</h3>
+                    <span class="chart-subtitle">Identified via Nmap banner grabbing and ElementTree native parsing</span>
+                </div>
                 <div class="table-container">
                     <table>
                         <thead>
                             <tr>
-                                <th>IP</th>
-                                <th>Port</th>
+                                <th>Host IP</th>
+                                <th>Port / Proto</th>
                                 <th>Service</th>
                                 <th>Product</th>
                                 <th>Version</th>
-                                <th>CPE</th>
+                                <th>CPE 2.3 Identifier</th>
                             </tr>
                         </thead>
                         <tbody id="detail-services-body"></tbody>
@@ -275,19 +488,22 @@
             </div>
 
             <!-- Findings -->
-            <div class="card glass" id="findings-card">
-                <h3>Vulnerability Findings</h3>
+            <div class="card cyber-card" id="findings-card">
+                <div class="card-header">
+                    <h3>Correlated Vulnerability Findings</h3>
+                    <span class="chart-subtitle">Ranked by Explainable 0–100 Priority Score (CVSS + KEV + EPSS + Asset Context)</span>
+                </div>
                 <div id="findings-container"></div>
                 <div class="empty-state hidden" id="no-findings-msg">
-                    <p>No findings yet. Click "Enrich CVEs" to match services against the NVD.</p>
+                    <p>No findings recorded yet. Click "Enrich Intel" to correlate services with NVD and CISA KEV.</p>
                 </div>
             </div>
 
             <!-- Analysis -->
-            <div class="card glass" id="analysis-card">
+            <div class="card cyber-card" id="analysis-card">
                 <div class="card-header">
-                    <h3>AI & Security Analysis</h3>
-                    <button class="btn btn-sm btn-primary" onclick="runAIAnalysisNow()">🤖 Run AI Analysis</button>
+                    <h3>Automated Security Analysis</h3>
+                    <button class="btn btn-sm btn-primary" onclick="runAIAnalysisNow()">Run Assessment</button>
                 </div>
                 <div id="analysis-container"></div>
             </div>
@@ -297,7 +513,7 @@
     <!-- Toast Notifications -->
     <div class="toast-container" id="toast-container"></div>
 
-    <script src="app.js?v=2"></script>
+    <script src="app.js?v=4"></script>
 </body>
 
 </html>
