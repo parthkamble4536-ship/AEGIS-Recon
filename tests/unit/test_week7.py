@@ -447,8 +447,13 @@ class TestCVEMatchingMocked:
                 "app.intel.matcher.search_cves_by_cpe",
                 side_effect=IntelUnavailableError("NVD down"),
             ),
+            patch(
+                "app.intel.matcher.search_cves_by_keyword",
+                side_effect=IntelUnavailableError("NVD down"),
+            ),
             patch("app.intel.matcher.cache_get", return_value=None),
             patch("app.intel.matcher.cache_get_stale", return_value=(None, None)),
+            patch("app.intel.matcher.cache_set"),
         ):
             matches = match_service_cves(
                 product="vsftpd",

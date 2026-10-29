@@ -105,13 +105,17 @@ def match_service_cves(
 
     # Strategy 2: Keyword fallback (only if no CPE results and we have product+version)
     if not matches and product and version:
-        keyword_matches = _search_by_keyword(
-            product,
-            version,
-            api_key=api_key,
-            rate_limit=rate_limit,
-            cache_ttl=nvd_cache_ttl,
-        )
+        try:
+            keyword_matches = _search_by_keyword(
+                product,
+                version,
+                api_key=api_key,
+                rate_limit=rate_limit,
+                cache_ttl=nvd_cache_ttl,
+            )
+        except IntelUnavailableError:
+            logger.warning("keyword_search_unavailable", product=product, version=version)
+            keyword_matches = []
         for m in keyword_matches:
             if m.cve_id not in matches:
                 matches[m.cve_id] = m
