@@ -153,4 +153,24 @@ CREATE INDEX IF NOT EXISTS idx_findings_cve_id ON findings(cve_id);
 CREATE INDEX IF NOT EXISTS idx_intel_cache_expires ON intel_cache(expires_at);
 CREATE INDEX IF NOT EXISTS idx_audit_log_timestamp ON audit_log(timestamp);
 CREATE INDEX IF NOT EXISTS idx_reports_scan_id ON reports(scan_id);
+
+-- Assets table: inventory of known hosts with business context (Phase 3)
+CREATE TABLE IF NOT EXISTS assets (
+    asset_id TEXT PRIMARY KEY,
+    hostname TEXT NOT NULL DEFAULT '',
+    ip TEXT NOT NULL DEFAULT '',
+    environment TEXT NOT NULL DEFAULT 'LAB',
+    -- LAB, DEV, TEST, STAGING, PRODUCTION
+    criticality TEXT NOT NULL DEFAULT 'LOW',
+    -- LOW, MEDIUM, HIGH, CRITICAL
+    owner TEXT NOT NULL DEFAULT '',
+    business_service TEXT NOT NULL DEFAULT '',
+    internet_exposed INTEGER NOT NULL DEFAULT 0,
+    -- 1 = externally exposed, 0 = internal
+    notes TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+    updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_assets_ip ON assets(ip);
 """

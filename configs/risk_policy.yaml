@@ -1,0 +1,67 @@
+# AEGIS-Recon Risk Scoring Policy
+# ─────────────────────────────────────────────────────────────────────────────
+# This file controls the weights used by Risk Engine V2 (app/risk/engine.py).
+# Changes here are picked up on the next application restart (no code change needed).
+#
+# Score range: 0–100
+# Each factor contributes its `impact` value to the raw score.
+# The environment multiplier is applied after summing all factors.
+# The final score is clamped to [0, 100].
+#
+# CRITICAL: Weights of 0 disable a factor. Never set kev_bonus=0 for production use.
+
+policy_version: "v2.0"
+policy_name: "default"
+
+# ── Intelligence Signals ─────────────────────────────────────────────────────
+
+# CVSS base score (0–10) scaled to 0–cvss_weight points
+cvss_weight: 40.0
+
+# Flat bonus when CVE is in CISA Known Exploited Vulnerabilities catalog
+kev_bonus: 20.0
+
+# EPSS probability (0–1) scaled to 0–epss_weight points
+# NOTE: unavailable EPSS adds 0 but does NOT reduce priority
+epss_weight: 10.0
+
+# Flat bonus when public exploit reference found in NVD data
+exploit_ref_bonus: 5.0
+
+# ── Match Quality ────────────────────────────────────────────────────────────
+
+confidence_high: 15.0
+confidence_medium: 8.0
+confidence_low: 2.0
+
+# ── Evidence Type ────────────────────────────────────────────────────────────
+
+evidence_observed: 10.0
+evidence_external: 8.0
+evidence_hypothesis: 3.0
+evidence_recommendation: 0.0
+
+# ── Service Exposure ─────────────────────────────────────────────────────────
+# Bonus for findings on commonly targeted services (ssh, http, smb, rdp, etc.)
+
+service_exposure_bonus: 5.0
+
+# ── Asset Criticality ────────────────────────────────────────────────────────
+# Flat bonus based on the criticality of the affected asset
+
+asset_criticality_critical: 15.0
+asset_criticality_high: 10.0
+asset_criticality_medium: 5.0
+asset_criticality_low: 0.0
+
+# ── Environment Multiplier ───────────────────────────────────────────────────
+# Applied after summing all factor contributions.
+# Production = full score; Lab = 50% of score.
+# Range: 0.0 (ignore) to 1.0 (full weight) or higher (boost).
+
+env_production_multiplier: 1.0
+env_staging_multiplier: 0.9
+env_test_multiplier: 0.7
+env_dev_multiplier: 0.6
+env_lab_multiplier: 0.5
+
