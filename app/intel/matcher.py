@@ -25,6 +25,8 @@ from app.core.errors import IntelUnavailableError
 from app.core.logging import get_logger
 from app.intel.cache import cache_get, cache_get_stale, cache_set, get_cache_timestamp
 from app.intel.kev import KEVCatalog, is_in_kev
+from app.intel.match_result import MatchConfidence, MatchMethod, MatchResult
+from app.intel.models import NormalizedService
 from app.intel.nvd import (
     NVDVulnerability,
     search_cves_by_cpe,
@@ -410,6 +412,415 @@ def _describe_range(start_inc: str, start_exc: str, end_inc: str, end_exc: str) 
 def _confidence_rank(confidence: str) -> int:
     """Numeric rank for confidence comparison."""
     return {"high": 3, "medium": 2, "low": 1}.get(confidence, 0)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Correlation Engine V2 — deterministic 5-level matching hierarchy
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def correlate_service(
+    service: NormalizedService,
+    nvd_vulns: list[NVDVulnerability],
+) -> list[MatchResult]:
+    """
+    Correlate a NormalizedService against a list of NVDVulnerability records.
+
+    Implements a deterministic 5-level matching hierarchy in order of
+    decreasing confidence. The first level that produces any results is
+    used; lower levels are only tried if higher levels produce nothing.
+
+    Levels:
+    1. CPE Exact        — service CPE matches exactly in vuln CPE list → HIGH
+    2. CPE Version Range — CPE vendor+product matches AND version in range → HIGH
+    3. Vendor+Product+Version — all three fields match → MEDIUM
+    4. Product+Version  — product and version match → MEDIUM
+    5. Product Only     — product name match only → LOW
+
+    Args:
+        service: Normalized service from Nmap scan output.
+        nvd_vulns: Pre-fetched NVD vulnerability records to match against.
+
+    Returns:
+        List of MatchResult objects. Never raises — all errors produce empty
+        results or lower-confidence matches. Every result has
+        verification_required=True.
+    """
+    if not nvd_vulns:
+        return []
+
+    results: list[MatchResult] = []
+
+    # Level 1: CPE Exact
+    if service.cpe:
+        results = _correlate_cpe_exact(service, nvd_vulns)
+        if results:
+            logger.debug(
+                "correlation_level_hit",
+                level="cpe_exact",
+                cve_count=len(results),
+                product=service.product,
+            )
+            return results
+
+    # Level 2: CPE Version Range
+    if service.cpe and service.version:
+        results = _correlate_cpe_version_range(service, nvd_vulns)
+        if results:
+            logger.debug(
+                "correlation_level_hit",
+                level="cpe_version_range",
+                cve_count=len(results),
+                product=service.product,
+            )
+            return results
+
+    # Level 3: Vendor + Product + Version
+    if service.vendor and service.product and service.version:
+        results = _correlate_vendor_product_version(service, nvd_vulns)
+        if results:
+            logger.debug(
+                "correlation_level_hit",
+                level="vendor_product_version",
+                cve_count=len(results),
+                product=service.product,
+            )
+            return results
+
+    # Level 4: Product + Version
+    if service.product and service.version:
+        results = _correlate_product_version(service, nvd_vulns)
+        if results:
+            logger.debug(
+                "correlation_level_hit",
+                level="product_version",
+                cve_count=len(results),
+                product=service.product,
+            )
+            return results
+
+    # Level 5: Product Only
+    if service.product:
+        results = _correlate_product_only(service, nvd_vulns)
+        if results:
+            logger.debug(
+                "correlation_level_hit",
+                level="product_only",
+                cve_count=len(results),
+                product=service.product,
+            )
+            return results
+
+    return []
+
+
+def _parse_cpe_parts(cpe: str) -> dict[str, str]:
+    """
+    Parse a CPE URI or WFN into a dict with keys: type, vendor, product, version.
+
+    Handles both CPE 2.2 URI (cpe:/a:vendor:product:version) and
+    CPE 2.3 WFN (cpe:2.3:a:vendor:product:version:...) formats.
+    Returns empty strings for missing parts; never raises.
+    """
+    result: dict[str, str] = {
+        "type": "",
+        "vendor": "",
+        "product": "",
+        "version": "",
+    }
+    if not cpe:
+        return result
+
+    try:
+        # Normalise CPE 2.2 URI to colon-split form
+        cpe_norm = cpe.strip()
+        if cpe_norm.startswith("cpe:/"):
+            # cpe:/a:vendor:product:version  → split on ':'
+            cpe_norm = cpe_norm[len("cpe:/"):]  # strip 'cpe:/'
+            parts = cpe_norm.split(":")
+            # parts[0] = type (a/o/h), parts[1] = vendor, parts[2] = product, parts[3] = version
+            if len(parts) >= 1:
+                result["type"] = parts[0]
+            if len(parts) >= 2:
+                result["vendor"] = parts[1]
+            if len(parts) >= 3:
+                result["product"] = parts[2]
+            if len(parts) >= 4:
+                result["version"] = parts[3]
+        elif cpe_norm.startswith("cpe:2.3:"):
+            # cpe:2.3:a:vendor:product:version:*:*:...
+            parts = cpe_norm.split(":")
+            # parts: [0]=cpe [1]=2.3 [2]=a [3]=vendor [4]=product [5]=version ...
+            if len(parts) >= 3:
+                result["type"] = parts[2]
+            if len(parts) >= 4:
+                result["vendor"] = parts[3]
+            if len(parts) >= 5:
+                result["product"] = parts[4]
+            if len(parts) >= 6:
+                result["version"] = parts[5] if parts[5] != "*" else ""
+    except Exception:
+        logger.debug("cpe_parse_failed", cpe=cpe)  # Malformed CPE - return what we have
+
+    return result
+
+
+def _cpe_vendor_product_match(svc_cpe: str, vuln_cpe: str) -> bool:
+    """Return True if two CPE strings share the same vendor and product."""
+    s = _parse_cpe_parts(svc_cpe)
+    v = _parse_cpe_parts(vuln_cpe)
+    if not s["vendor"] or not v["vendor"]:
+        return False
+    if not s["product"] or not v["product"]:
+        return False
+    return (
+        s["vendor"].lower() == v["vendor"].lower()
+        and s["product"].lower() == v["product"].lower()
+    )
+
+
+def _cpe_exact_match(svc_cpe: str, vuln_cpe: str) -> bool:
+    """Return True if two CPE strings are an exact match (including version)."""
+    s = _parse_cpe_parts(svc_cpe)
+    v = _parse_cpe_parts(vuln_cpe)
+    if not s["vendor"] or not v["vendor"]:
+        return False
+    if not s["product"] or not v["product"]:
+        return False
+    # Wildcard version in vuln CPE means all versions match
+    vendor_match = s["vendor"].lower() == v["vendor"].lower()
+    product_match = s["product"].lower() == v["product"].lower()
+    version_match = (
+        not v["version"]
+        or v["version"] == "*"
+        or v["version"] == "-"
+        or (s["version"] and s["version"].lower() == v["version"].lower())
+    )
+    return vendor_match and product_match and version_match
+
+
+def _correlate_cpe_exact(
+    service: NormalizedService,
+    vulns: list[NVDVulnerability],
+) -> list[MatchResult]:
+    """Level 1: exact CPE match in vuln's affected configurations."""
+    results = []
+    all_service_cpes = [service.cpe] + service.extra_cpes
+
+    for vuln in vulns:
+        for cpe_match in vuln.cpe_matches:
+            if not cpe_match.get("vulnerable", True):
+                continue
+            criteria = cpe_match.get("criteria", "")
+            for svc_cpe in all_service_cpes:
+                if _cpe_exact_match(svc_cpe, criteria):
+                    results.append(
+                        MatchResult(
+                            cve_id=vuln.cve_id,
+                            match_method=MatchMethod.CPE_EXACT,
+                            matched_vendor=_parse_cpe_parts(svc_cpe).get("vendor", ""),
+                            matched_product=_parse_cpe_parts(svc_cpe).get("product", ""),
+                            matched_version=service.version,
+                            matched_cpe=svc_cpe,
+                            confidence=MatchConfidence.HIGH,
+                            evidence=[
+                                f"Service CPE '{svc_cpe}' exactly matches affected configuration '{criteria}' in {vuln.cve_id}.",
+                            ],
+                            reason=(
+                                f"Exact CPE match: {svc_cpe} found in {vuln.cve_id} "
+                                f"affected configuration list."
+                            ),
+                            verification_required=True,
+                        )
+                    )
+                    break
+    return results
+
+
+def _correlate_cpe_version_range(
+    service: NormalizedService,
+    vulns: list[NVDVulnerability],
+) -> list[MatchResult]:
+    """Level 2: CPE vendor+product matches AND version falls within affected range."""
+    results = []
+    all_service_cpes = [service.cpe] + service.extra_cpes
+
+    for vuln in vulns:
+        for cpe_match in vuln.cpe_matches:
+            if not cpe_match.get("vulnerable", True):
+                continue
+            criteria = cpe_match.get("criteria", "")
+
+            v_start_inc = cpe_match.get("versionStartIncluding", "")
+            v_start_exc = cpe_match.get("versionStartExcluding", "")
+            v_end_inc = cpe_match.get("versionEndIncluding", "")
+            v_end_exc = cpe_match.get("versionEndExcluding", "")
+
+            has_range = any([v_start_inc, v_start_exc, v_end_inc, v_end_exc])
+            if not has_range:
+                continue
+
+            for svc_cpe in all_service_cpes:
+                if not _cpe_vendor_product_match(svc_cpe, criteria):
+                    continue
+
+                in_range = _check_version_range(
+                    service.version, v_start_inc, v_start_exc, v_end_inc, v_end_exc
+                )
+                if in_range is True:
+                    range_desc = _describe_range(v_start_inc, v_start_exc, v_end_inc, v_end_exc)
+                    svc_parts = _parse_cpe_parts(svc_cpe)
+                    results.append(
+                        MatchResult(
+                            cve_id=vuln.cve_id,
+                            match_method=MatchMethod.CPE_VERSION_RANGE,
+                            matched_vendor=svc_parts.get("vendor", ""),
+                            matched_product=svc_parts.get("product", ""),
+                            matched_version=service.version,
+                            matched_cpe=svc_cpe,
+                            confidence=MatchConfidence.HIGH,
+                            evidence=[
+                                f"Service CPE vendor/product matches '{criteria}'.",
+                                f"Version {service.version} falls within affected range {range_desc}.",
+                            ],
+                            reason=(
+                                f"Matched {service.product} {service.version} against an NVD CPE "
+                                f"affected-version range ({range_desc}) for {vuln.cve_id}."
+                            ),
+                            verification_required=True,
+                        )
+                    )
+                    break
+    return results
+
+
+def _text_contains_product_version(text: str, product: str, version: str) -> bool:
+    """Check if text (e.g., CVE description) mentions both product and version."""
+    t = text.lower()
+    return product.lower() in t and version.lower() in t
+
+
+def _correlate_vendor_product_version(
+    service: NormalizedService,
+    vulns: list[NVDVulnerability],
+) -> list[MatchResult]:
+    """Level 3: vendor + product + version all mentioned in vuln data."""
+    results = []
+    for vuln in vulns:
+        desc_lower = vuln.description.lower()
+        vendor_match = service.vendor.lower() in desc_lower
+        product_match = service.product.lower() in desc_lower
+        version_match = service.version.lower() in desc_lower
+
+        # Also check CPE criteria for vendor+product
+        cpe_vendor_product = False
+        for cpe_match in vuln.cpe_matches:
+            criteria = cpe_match.get("criteria", "")
+            parts = _parse_cpe_parts(criteria)
+            if (
+                parts["vendor"].lower() == service.vendor.lower()
+                and parts["product"].lower() == service.product.lower()
+            ):
+                cpe_vendor_product = True
+                break
+
+        if (vendor_match or cpe_vendor_product) and product_match and version_match:
+            results.append(
+                MatchResult(
+                    cve_id=vuln.cve_id,
+                    match_method=MatchMethod.VENDOR_PRODUCT_VERSION,
+                    matched_vendor=service.vendor,
+                    matched_product=service.product,
+                    matched_version=service.version,
+                    matched_cpe=service.cpe,
+                    confidence=MatchConfidence.MEDIUM,
+                    evidence=[
+                        f"Vendor '{service.vendor}' found in CVE data.",
+                        f"Product '{service.product}' found in CVE data.",
+                        f"Version '{service.version}' found in CVE description.",
+                    ],
+                    reason=(
+                        f"Vendor '{service.vendor}', product '{service.product}', and "
+                        f"version '{service.version}' all appear in {vuln.cve_id} data. "
+                        f"Manual verification required."
+                    ),
+                    verification_required=True,
+                )
+            )
+    return results
+
+
+def _correlate_product_version(
+    service: NormalizedService,
+    vulns: list[NVDVulnerability],
+) -> list[MatchResult]:
+    """Level 4: product + version match in vuln description or CPE."""
+    results = []
+    for vuln in vulns:
+        if _text_contains_product_version(vuln.description, service.product, service.version):
+            results.append(
+                MatchResult(
+                    cve_id=vuln.cve_id,
+                    match_method=MatchMethod.PRODUCT_VERSION,
+                    matched_vendor="",
+                    matched_product=service.product,
+                    matched_version=service.version,
+                    matched_cpe=service.cpe,
+                    confidence=MatchConfidence.MEDIUM,
+                    evidence=[
+                        f"Product '{service.product}' and version '{service.version}' "
+                        f"both appear in {vuln.cve_id} description.",
+                    ],
+                    reason=(
+                        f"Product '{service.product}' and version '{service.version}' "
+                        f"found in {vuln.cve_id} description. Vendor not confirmed. "
+                        f"Manual verification required."
+                    ),
+                    verification_required=True,
+                )
+            )
+    return results
+
+
+def _correlate_product_only(
+    service: NormalizedService,
+    vulns: list[NVDVulnerability],
+) -> list[MatchResult]:
+    """Level 5: product name match only — lowest confidence."""
+    results = []
+    for vuln in vulns:
+        desc_lower = vuln.description.lower()
+        product_lower = service.product.lower()
+
+        # Also check CPE criteria
+        in_cpe = any(
+            product_lower in cpe_match.get("criteria", "").lower()
+            for cpe_match in vuln.cpe_matches
+        )
+
+        if product_lower in desc_lower or in_cpe:
+            results.append(
+                MatchResult(
+                    cve_id=vuln.cve_id,
+                    match_method=MatchMethod.PRODUCT_ONLY,
+                    matched_vendor="",
+                    matched_product=service.product,
+                    matched_version="",
+                    matched_cpe=service.cpe,
+                    confidence=MatchConfidence.LOW,
+                    evidence=[
+                        f"Product name '{service.product}' found in {vuln.cve_id} data.",
+                        "Version not confirmed — treat as hypothesis only.",
+                    ],
+                    reason=(
+                        f"Product name '{service.product}' appears in {vuln.cve_id} data "
+                        f"but version could not be matched. Low-confidence hypothesis. "
+                        f"Manual verification required."
+                    ),
+                    verification_required=True,
+                )
+            )
+    return results
 
 
 def _serialize_vulns(vulns: list[NVDVulnerability]) -> str:
