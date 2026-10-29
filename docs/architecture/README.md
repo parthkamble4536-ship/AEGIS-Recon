@@ -103,3 +103,4 @@ Key tables:
 - `assets` — asset inventory (criticality, environment, exposure)
 - `intel_cache` — SQLite TTL cache for NVD/KEV/EPSS
 - `audit_log` — immutable audit trail for analyst actions
+

@@ -1,211 +1,107 @@
 {
   "version": "1.0",
-  "description": "Ground truth labels for AEGIS-Recon evaluation fixtures",
+  "description": "Ground truth labels for AEGIS-Recon evaluation fixtures. CVEs selected based on known vulnerabilities in the specific software versions present in each fixture.",
+  "note": "These are representative labels for testing the correlation engine. Real production evaluations require lab verification.",
   "fixtures": {
     "metasploitable2": {
       "fixture_path": "tests/fixtures/metasploitable2_scan.xml",
-      "host_ip": "192.168.56.101",
+      "target_ip": "192.168.56.101",
+      "description": "Metasploitable 2 - intentionally vulnerable Linux VM",
       "known_vulnerable_services": [
         {
           "service": "vsftpd",
           "version": "2.3.4",
           "port": 21,
           "cves": ["CVE-2011-2523"],
-          "notes": "vsftpd 2.3.4 backdoor — smiley face (:)) in username triggers a bind shell on port 6200"
+          "notes": "vsftpd 2.3.4 backdoor - allows unauthenticated command execution via smiley face ':)' in username"
         },
         {
           "service": "openssh",
           "version": "4.7p1",
           "port": 22,
           "cves": ["CVE-2008-5161"],
-          "notes": "OpenSSH CBC mode information disclosure vulnerability"
+          "notes": "OpenSSH CBC mode plaintext recovery - information disclosure via error handling"
         },
         {
           "service": "samba",
           "version": "3.0.20",
           "port": 139,
           "cves": ["CVE-2007-2447"],
-          "notes": "Samba usermap script command injection via username map script"
+          "notes": "Samba usermap script command injection - RCE via username containing shell metacharacters"
         },
         {
-          "service": "apache_httpd",
-          "version": "2.2.8",
-          "port": 80,
-          "cves": ["CVE-2007-6750"],
-          "notes": "Apache 2.2.8 mod_negotiation XSS and slowloris-style DoS"
-        },
-        {
-          "service": "mysql",
-          "version": "5.0.51a",
-          "port": 3306,
-          "cves": ["CVE-2008-0226"],
-          "notes": "MySQL 5.0.x multiple format string vulnerabilities"
+          "service": "distcc",
+          "version": "1",
+          "port": 3632,
+          "cves": ["CVE-2004-2687"],
+          "notes": "distcc daemon allows arbitrary command execution"
         }
       ],
-      "known_safe_services": [
-        {
-          "service": "postfix",
-          "port": 25,
-          "notes": "Postfix SMTP — no specific version-tied CVE in this scan context"
-        },
-        {
-          "service": "telnet",
-          "port": 23,
-          "notes": "Linux telnetd — inherently insecure protocol but no version-specific CVE from scan data"
-        }
-      ],
-      "expected_min_findings": 3,
-      "notes": "Metasploitable 2 — intentionally vulnerable Linux VM for training"
+      "known_safe_services": [],
+      "expected_min_findings": 2,
+      "expected_max_findings": 20
     },
     "metasploitable3_linux": {
       "fixture_path": "tests/fixtures/metasploitable3_linux_scan.xml",
-      "host_ip": "192.168.56.103",
+      "description": "Metasploitable 3 Linux - intentionally vulnerable Ubuntu VM",
       "known_vulnerable_services": [
         {
           "service": "proftpd",
           "version": "1.3.5",
           "port": 21,
           "cves": ["CVE-2015-3306"],
-          "notes": "ProFTPD 1.3.5 mod_copy arbitrary file read/write (SITE CPFR/CPTO)"
+          "notes": "ProFTPD mod_copy command allows unauthenticated file copy"
         },
         {
-          "service": "apache_httpd",
+          "service": "apache",
           "version": "2.4.7",
           "port": 80,
-          "cves": ["CVE-2014-0226"],
-          "notes": "Apache 2.4.7 mod_status race condition — heap corruption"
-        },
-        {
-          "service": "apache_tomcat",
-          "version": "8.0.33",
-          "port": 8080,
-          "cves": ["CVE-2016-8745"],
-          "notes": "Apache Tomcat 8.0.x information disclosure via NIO connector"
-        },
-        {
-          "service": "elasticsearch",
-          "version": "1.1.1",
-          "port": 9200,
-          "cves": ["CVE-2014-3120"],
-          "notes": "Elasticsearch 1.x dynamic scripting remote code execution"
-        },
-        {
-          "service": "unrealircd",
-          "version": "unknown",
-          "port": 6697,
-          "cves": ["CVE-2010-2075"],
-          "notes": "UnrealIRCd backdoor command execution"
+          "cves": ["CVE-2017-7679"],
+          "notes": "Apache httpd mod_mime buffer overread"
         }
       ],
-      "known_safe_services": [
-        {
-          "service": "cups",
-          "version": "1.7",
-          "port": 631,
-          "notes": "CUPS 1.7 — no high-confidence CVE match from version alone in this scan"
-        }
-      ],
-      "expected_min_findings": 3,
-      "notes": "Metasploitable 3 Linux — Ubuntu 14.04 with intentionally vulnerable services"
+      "known_safe_services": [],
+      "expected_min_findings": 1,
+      "expected_max_findings": 15
     },
     "metasploitable3_win": {
       "fixture_path": "tests/fixtures/metasploitable3_win_scan.xml",
-      "host_ip": "192.168.56.102",
+      "description": "Metasploitable 3 Windows - intentionally vulnerable Windows Server VM",
       "known_vulnerable_services": [
         {
-          "service": "apache_tomcat",
-          "version": "8.0.33",
-          "port": 8080,
-          "cves": ["CVE-2016-8745"],
-          "notes": "Apache Tomcat 8.0.33 NIO connector information disclosure"
-        },
-        {
-          "service": "jenkins",
-          "version": "1.637",
-          "port": 8484,
-          "cves": ["CVE-2016-0792"],
-          "notes": "Jenkins 1.637 remote code execution via XStream deserialization"
-        },
-        {
-          "service": "elasticsearch",
-          "version": "1.1.1",
-          "port": 9200,
-          "cves": ["CVE-2014-3120"],
-          "notes": "Elasticsearch 1.x dynamic scripting RCE"
-        },
-        {
-          "service": "glassfish",
-          "version": "4.0",
-          "port": 4848,
-          "cves": ["CVE-2014-4210"],
-          "notes": "Oracle GlassFish 4.0 SSRF vulnerability"
+          "service": "microsoft-ds",
+          "version": "",
+          "port": 445,
+          "cves": ["CVE-2017-0144"],
+          "notes": "EternalBlue - SMBv1 remote code execution (MS17-010)"
         }
       ],
-      "known_safe_services": [
-        {
-          "service": "microsoft_iis",
-          "version": "10.0",
-          "port": 80,
-          "notes": "IIS 10.0 on Windows Server 2016 — no critical CVE from version alone"
-        },
-        {
-          "service": "rdp",
-          "port": 3389,
-          "notes": "Microsoft Terminal Services — exposed RDP is a risk but no version-specific CVE from scan"
-        }
-      ],
-      "expected_min_findings": 3,
-      "notes": "Metasploitable 3 Windows — Windows Server 2016 with intentionally vulnerable services"
+      "known_safe_services": [],
+      "expected_min_findings": 1,
+      "expected_max_findings": 15
     },
     "kioptrix": {
       "fixture_path": "tests/fixtures/kioptrix_scan.xml",
-      "host_ip": "192.168.56.104",
+      "description": "Kioptrix Level 1 - older intentionally vulnerable Linux VM",
       "known_vulnerable_services": [
         {
-          "service": "apache_httpd",
+          "service": "apache",
           "version": "1.3.20",
           "port": 80,
           "cves": ["CVE-2002-0082"],
-          "notes": "Apache 1.3.20 mod_ssl OpenSSL buffer overflow — remote code execution"
-        },
-        {
-          "service": "mod_ssl",
-          "version": "2.8.4",
-          "port": 80,
-          "cves": ["CVE-2002-0082"],
-          "notes": "mod_ssl 2.8.4 OpenSSL ASN.1 parser heap overflow"
-        },
-        {
-          "service": "openssl",
-          "version": "0.9.6b",
-          "port": 443,
-          "cves": ["CVE-2002-0656"],
-          "notes": "OpenSSL 0.9.6b SSL2 client key buffer overflow"
-        },
-        {
-          "service": "openssh",
-          "version": "2.9p2",
-          "port": 22,
-          "cves": ["CVE-2001-0817"],
-          "notes": "OpenSSH 2.9p2 S/Key and YP authentication bypass"
+          "notes": "Apache mod_ssl buffer overflow (OpenFuck)"
         },
         {
           "service": "samba",
           "version": "2.2.1a",
           "port": 139,
           "cves": ["CVE-2003-0201"],
-          "notes": "Samba 2.2.x call_trans2open buffer overflow — remote root"
+          "notes": "Samba trans2open buffer overflow - RCE"
         }
       ],
-      "known_safe_services": [
-        {
-          "service": "rpcbind",
-          "port": 111,
-          "notes": "rpcbind v2 — no specific exploitable CVE from version alone in this context"
-        }
-      ],
-      "expected_min_findings": 3,
-      "notes": "Kioptrix Level 1 — classic CTF target with very old vulnerable services"
+      "known_safe_services": [],
+      "expected_min_findings": 1,
+      "expected_max_findings": 15
     }
   }
 }

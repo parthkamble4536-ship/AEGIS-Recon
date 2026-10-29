@@ -89,6 +89,7 @@ addopts = "-v --strict-markers"
 markers = [
     "integration: marks tests as integration tests (may need Nmap or network)",
     "security: marks tests as security tests",
+    "evaluation: marks tests as evaluation/benchmarks (excluded from standard CI run)",
 ]
 
 [tool.bandit]

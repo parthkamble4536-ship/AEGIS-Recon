@@ -124,3 +124,4 @@ Criticality: `LOW` | `MEDIUM` | `HIGH` | `CRITICAL`
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/health` | System health check |
+

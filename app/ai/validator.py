@@ -36,6 +36,14 @@ DANGEROUS_PATTERNS = [
     r"\bnc\s+-[a-z]",
     r"\bcurl\b.*\bhttp",
     r"\bwget\b",
+    # Phase 8 — additional dangerous patterns
+    r"nc\s+-e",              # netcat reverse shell
+    r"python.*-c.*import",  # python one-liner execution
+    r"powershell.*-enc",    # encoded PowerShell command
+    r"/bin/sh\b",            # shell path reference
+    r"\beval\(",             # eval execution
+    r"\bexec\(",             # exec execution
+    r"__import__",           # Python import bypass
 ]
 
 
@@ -135,3 +143,30 @@ def _extract_json(text: str) -> str:
         return text[start : end + 1]
 
     return text
+
+
+def check_claim_grounding(claim: str, allowed_cves: set[str]) -> str:
+    """
+    Check whether a claim is grounded in the allowed CVE set.
+
+    Returns:
+        "SUPPORTED"   — claim references only CVEs from allowed_cves
+        "UNSUPPORTED" — claim references at least one CVE not in allowed_cves
+        "UNCHECKED"   — claim contains no CVE references
+
+    Args:
+        claim: A text claim from AI output.
+        allowed_cves: The set of CVE IDs that appeared in the input data.
+    """
+    found_cves = set(re.findall(r"CVE-\d{4}-\d{4,}", claim, re.IGNORECASE))
+    found_cves = {c.upper() for c in found_cves}
+
+    if not found_cves:
+        return "UNCHECKED"
+
+    hallucinated = found_cves - {c.upper() for c in allowed_cves}
+    if hallucinated:
+        logger.debug("claim_unsupported", hallucinated=list(hallucinated))
+        return "UNSUPPORTED"
+
+    return "SUPPORTED"
