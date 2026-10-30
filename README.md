@@ -26,24 +26,38 @@ Traditional vulnerability scanners often suffer from high false-positive rates, 
 
 ## 🖥️ Platform Showcase
 
-| Security Assessment Dashboard (Cyber SOC Matrix) |
+| Executive Cyber SOC Dashboard & Target Fleet Matrix |
 |:---:|
-| ![Security Assessment Dashboard](docs/images/dashboard.png) |
-| *Real-time metrics, Target Fleet Matrix, CVSS v3.1 donut severity distribution, and 4-tier evidence model.* |
+| ![SOC Dashboard & Fleet Matrix](docs/images/dashboard_overview.jpg) |
+| *Real-time telemetry, 4 core KPI metrics, and authenticated target fleet matrix across Production, Staging, Dev, and Lab.* |
 
 <br>
 
-| Vulnerability Findings & Analyst Triage | Scope-Protected Scan Execution |
+| CVSS v3.1 Severity Analytics & Evidence Model | Recent Reconnaissance Audit Log |
 |:---:|:---:|
-| ![Vulnerability Findings](docs/images/vulnerability_findings.jpg) | ![Launch Security Scan](docs/images/new_scan.jpg) |
-| *Correlated CVEs, CVSS ratings, CISA KEV tags, and Analyst Actions.* | *CIDR subnet validation, scan profiles, and safe subprocess orchestration.* |
+| ![CVSS Severity Distribution](docs/images/dashboard_charts.jpg) | ![Recent Scans Audit Log](docs/images/recent_scans.jpg) |
+| *22-vulnerability donut distribution and strict 4-tier evidence provenance taxonomy.* | *Persistent SQLite WAL audit log of completed reconnaissance assessments.* |
 
 <br>
 
-| AI Threat Intelligence & Grounded Mitigation Guidance |
+| Discovered Network Services & CPE Fingerprints | Correlated Vulnerabilities & Analyst Triage |
+|:---:|:---:|
+| ![Discovered Network Services](docs/images/discovered_services.jpg) | ![Vulnerability Findings & Triage](docs/images/vulnerability_findings.jpg) |
+| *Nmap banner-grabbed service discovery with native CPE 2.3 identifiers.* | *Correlated CVEs, CISA KEV badges, EPSS ratings, and 6 analyst triage actions.* |
+
+<br>
+
+| Scope-Protected Scan Execution | AI Threat Intelligence Assessment |
+|:---:|:---:|
+| ![Launch Recon & Scope Protection](docs/images/new_scan.jpg) | ![AI Threat Intelligence Analysis](docs/images/ai_intelligence.jpg) |
+| *Policy-governed CIDR allowlist validation with shell injection safeguards.* | *Deterministic executive risk summary and structured exploitability vectors.* |
+
+<br>
+
+| Actionable Defensive Remediation Playbook |
 |:---:|
-| ![AI Threat Intelligence Analysis](docs/images/ai_intelligence.jpg) |
-| *Structured executive summaries, risk overview cards, actionable remediation steps, and operational boundaries.* |
+| ![Actionable Mitigation Playbook](docs/images/ai_recommendations.jpg) |
+| *Prioritized mitigation steps (`URGENT KEV`, `CRITICAL`, `HIGH`, `VERIFY`, `DEFENSE`, `UPDATE`), evidence calibration notes, and operational boundaries.* |
 
 ---
 
