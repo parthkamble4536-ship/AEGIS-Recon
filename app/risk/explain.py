@@ -39,7 +39,9 @@ def explain_assessment(assessment: RiskAssessmentV2) -> str:
     if assessment.epss_probability is None:
         lines.append("  EPSS:         Unavailable (not interpreted as low risk)")
     else:
-        lines.append(f"  EPSS:         {assessment.epss_probability:.4f} ({assessment.epss_probability*100:.1f}% exploitation probability)")
+        lines.append(
+            f"  EPSS:         {assessment.epss_probability:.4f} ({assessment.epss_probability * 100:.1f}% exploitation probability)"
+        )
 
     lines.append("")
     lines.append(
@@ -71,4 +73,3 @@ def explain_score_difference(score_a: float, score_b: float, context_a: str, con
         f"Asset A context: {context_a}\n"
         f"Asset B context: {context_b}"
     )
-

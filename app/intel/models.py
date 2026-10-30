@@ -32,4 +32,3 @@ class NormalizedService:
     banner: str = ""  # raw banner if available
     confidence: str = "LOW"  # HIGH / MEDIUM / LOW — Nmap's own detection confidence
     extra_cpes: list[str] = field(default_factory=list)  # additional CPEs if multiple
-

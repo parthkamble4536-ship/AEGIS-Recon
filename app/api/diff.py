@@ -187,4 +187,3 @@ def patch_finding_remediation(finding_id: str, body: RemediationRequest) -> dict
     if result is None:
         raise HTTPException(status_code=404, detail=f"Finding {finding_id!r} not found")
     return result
-

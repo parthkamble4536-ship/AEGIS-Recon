@@ -36,4 +36,3 @@ class EPSSScore:
     source: str = "FIRST-EPSS"
     retrieved_at: str = ""
     expires_at: str = ""
-

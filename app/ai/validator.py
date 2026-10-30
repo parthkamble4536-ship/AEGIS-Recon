@@ -37,13 +37,13 @@ DANGEROUS_PATTERNS = [
     r"\bcurl\b.*\bhttp",
     r"\bwget\b",
     # Phase 8 — additional dangerous patterns
-    r"nc\s+-e",              # netcat reverse shell
+    r"nc\s+-e",  # netcat reverse shell
     r"python.*-c.*import",  # python one-liner execution
-    r"powershell.*-enc",    # encoded PowerShell command
-    r"/bin/sh\b",            # shell path reference
-    r"\beval\(",             # eval execution
-    r"\bexec\(",             # exec execution
-    r"__import__",           # Python import bypass
+    r"powershell.*-enc",  # encoded PowerShell command
+    r"/bin/sh\b",  # shell path reference
+    r"\beval\(",  # eval execution
+    r"\bexec\(",  # exec execution
+    r"__import__",  # Python import bypass
 ]
 
 

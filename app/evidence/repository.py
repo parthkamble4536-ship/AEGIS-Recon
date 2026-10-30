@@ -37,7 +37,9 @@ def create_evidence(evidence: Evidence) -> Evidence:
                 evidence.raw_data,
             ),
         )
-    logger.debug("evidence_created", evidence_id=evidence.evidence_id, finding_id=evidence.finding_id)
+    logger.debug(
+        "evidence_created", evidence_id=evidence.evidence_id, finding_id=evidence.finding_id
+    )
     return evidence
 
 

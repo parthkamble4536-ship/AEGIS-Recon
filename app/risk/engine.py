@@ -157,8 +157,7 @@ def calculate_risk_v2(
                 name="Environment Multiplier",
                 impact=round(raw_score - pre_mult, 1),
                 detail=(
-                    f"Environment: {asset_environment}. "
-                    f"Score multiplied by {multiplier:.2f}x."
+                    f"Environment: {asset_environment}. Score multiplied by {multiplier:.2f}x."
                 ),
                 weight_used=multiplier,
             )
@@ -206,4 +205,3 @@ def _score_to_label(score: float) -> str:
     elif score >= 20:
         return "low"
     return "informational"
-

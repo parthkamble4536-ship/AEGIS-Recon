@@ -19,15 +19,15 @@ class RiskPolicyWeights:
     """
 
     # Intelligence signals
-    cvss_weight: float = 40.0        # Max contribution from CVSS (scaled 0-10 → 0-weight)
-    kev_bonus: float = 20.0          # Flat bonus when CVE is in CISA KEV
-    epss_weight: float = 10.0        # Max contribution from EPSS probability (0-1 → 0-weight)
-    exploit_ref_bonus: float = 5.0   # Flat bonus when public exploit reference exists
+    cvss_weight: float = 40.0  # Max contribution from CVSS (scaled 0-10 → 0-weight)
+    kev_bonus: float = 20.0  # Flat bonus when CVE is in CISA KEV
+    epss_weight: float = 10.0  # Max contribution from EPSS probability (0-1 → 0-weight)
+    exploit_ref_bonus: float = 5.0  # Flat bonus when public exploit reference exists
 
     # Match quality
-    confidence_high: float = 15.0    # Bonus for HIGH match confidence
-    confidence_medium: float = 8.0   # Bonus for MEDIUM match confidence
-    confidence_low: float = 2.0      # Bonus for LOW match confidence
+    confidence_high: float = 15.0  # Bonus for HIGH match confidence
+    confidence_medium: float = 8.0  # Bonus for MEDIUM match confidence
+    confidence_low: float = 2.0  # Bonus for LOW match confidence
 
     # Evidence type
     evidence_observed: float = 10.0
@@ -36,7 +36,7 @@ class RiskPolicyWeights:
     evidence_recommendation: float = 0.0
 
     # Asset context
-    service_exposure_bonus: float = 5.0    # High-value service/port
+    service_exposure_bonus: float = 5.0  # High-value service/port
     asset_criticality_critical: float = 15.0
     asset_criticality_high: float = 10.0
     asset_criticality_medium: float = 5.0
@@ -91,4 +91,3 @@ class RiskAssessmentV2:
     # Reproducibility
     scoring_policy_version: str = "v2.0"
     scoring_policy_name: str = "default"
-

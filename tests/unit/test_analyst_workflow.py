@@ -35,8 +35,14 @@ class TestAnalystWorkflowModels:
     def test_all_finding_statuses_exist(self):
         """Ensure all required lifecycle statuses are defined."""
         required = {
-            "new", "triaged", "verified", "remediation_planned",
-            "remediated", "closed", "false_positive", "accepted_risk",
+            "new",
+            "triaged",
+            "verified",
+            "remediation_planned",
+            "remediated",
+            "closed",
+            "false_positive",
+            "accepted_risk",
         }
         actual = {s.value for s in FindingStatus}
         assert required == actual
@@ -50,8 +56,12 @@ class TestAnalystWorkflowModels:
     def test_all_false_positive_reasons_exist(self):
         """Ensure all required false-positive reason codes are defined."""
         required = {
-            "incorrect_version", "backported_patch", "not_applicable",
-            "compensating_control", "duplicate", "other",
+            "incorrect_version",
+            "backported_patch",
+            "not_applicable",
+            "compensating_control",
+            "duplicate",
+            "other",
         }
         actual = {r.value for r in FalsePositiveReason}
         assert required == actual
@@ -93,6 +103,7 @@ class TestRemediationRepository:
         mock_get_db.return_value = mock_conn
 
         from app.diff.remediation import update_finding_remediation
+
         result = update_finding_remediation("nonexistent", vendor="Apache")
         assert result is None
 
@@ -103,12 +114,17 @@ class TestRemediationRepository:
 
         class FakeCursor:
             rowcount = 1
+
             def fetchone(self):
                 return {"id": "f1", "remediation_vendor": "Apache"}
 
         class FakeConn:
-            def __enter__(self): return self
-            def __exit__(self, *a): return False
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                return False
+
             def execute(self, sql, params=None):
                 calls.append((sql, params))
                 return FakeCursor()
@@ -116,6 +132,7 @@ class TestRemediationRepository:
         mock_get_db.return_value = FakeConn()
 
         from app.diff.remediation import update_finding_remediation
+
         update_finding_remediation(
             "f1",
             vendor="Apache Software Foundation",
@@ -136,6 +153,7 @@ class TestRemediationRepository:
 @pytest.fixture
 def client():
     from app.main import create_app
+
     app = create_app()
     return TestClient(app)
 

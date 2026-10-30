@@ -105,4 +105,3 @@ def remove_asset(asset_id: str) -> None:
     removed = delete_asset(asset_id)
     if not removed:
         raise HTTPException(status_code=404, detail=f"Asset '{asset_id}' not found.")
-

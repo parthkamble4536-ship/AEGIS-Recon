@@ -536,7 +536,7 @@ def _parse_cpe_parts(cpe: str) -> dict[str, str]:
         cpe_norm = cpe.strip()
         if cpe_norm.startswith("cpe:/"):
             # cpe:/a:vendor:product:version  → split on ':'
-            cpe_norm = cpe_norm[len("cpe:/"):]  # strip 'cpe:/'
+            cpe_norm = cpe_norm[len("cpe:/") :]  # strip 'cpe:/'
             parts = cpe_norm.split(":")
             # parts[0] = type (a/o/h), parts[1] = vendor, parts[2] = product, parts[3] = version
             if len(parts) >= 1:
@@ -574,8 +574,7 @@ def _cpe_vendor_product_match(svc_cpe: str, vuln_cpe: str) -> bool:
     if not s["product"] or not v["product"]:
         return False
     return (
-        s["vendor"].lower() == v["vendor"].lower()
-        and s["product"].lower() == v["product"].lower()
+        s["vendor"].lower() == v["vendor"].lower() and s["product"].lower() == v["product"].lower()
     )
 
 
@@ -794,8 +793,7 @@ def _correlate_product_only(
 
         # Also check CPE criteria
         in_cpe = any(
-            product_lower in cpe_match.get("criteria", "").lower()
-            for cpe_match in vuln.cpe_matches
+            product_lower in cpe_match.get("criteria", "").lower() for cpe_match in vuln.cpe_matches
         )
 
         if product_lower in desc_lower or in_cpe:

@@ -94,7 +94,9 @@ def update_finding_decision(
         Updated finding dict, or None if not found.
     """
     if decision not in _VALID_DECISION:
-        raise ValueError(f"Invalid decision: {decision!r}. Must be one of {sorted(_VALID_DECISION)}")
+        raise ValueError(
+            f"Invalid decision: {decision!r}. Must be one of {sorted(_VALID_DECISION)}"
+        )
 
     now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -145,11 +147,13 @@ def update_finding_decision(
                 decided_by,
                 "finding_decision_recorded",
                 finding_id,
-                json.dumps({
-                    "decision": decision,
-                    "reason": decision_reason,
-                    "false_positive_reason": false_positive_reason,
-                }),
+                json.dumps(
+                    {
+                        "decision": decision,
+                        "reason": decision_reason,
+                        "false_positive_reason": false_positive_reason,
+                    }
+                ),
             ),
         )
         row = conn.execute("SELECT * FROM findings WHERE id = ?", (finding_id,)).fetchone()
@@ -192,4 +196,3 @@ def get_finding_status_history(finding_id: str) -> list[dict[str, Any]]:
             entry["detail"] = {}
         result.append(entry)
     return result
-

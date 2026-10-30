@@ -72,6 +72,7 @@ def add_finding_evidence(finding_id: str, body: EvidenceCreateRequest) -> dict[s
         )
 
     import hashlib
+
     content = f"{body.source}:{finding_id}:{body.description}"
     content_hash = hashlib.sha256(content.encode()).hexdigest()
     now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")

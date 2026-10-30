@@ -3,4 +3,3 @@
 from app.assets.models import Asset, AssetCriticality, AssetEnvironment, AssetExposure
 
 __all__ = ["Asset", "AssetCriticality", "AssetEnvironment", "AssetExposure"]
-

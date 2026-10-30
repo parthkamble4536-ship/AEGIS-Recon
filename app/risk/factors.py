@@ -67,15 +67,13 @@ def epss_factor(
         impact=round(contribution, 1),
         detail=(
             f"EPSS probability {epss_probability:.4f} "
-            f"(~{epss_probability*100:.1f}% chance of exploitation within 30 days)."
+            f"(~{epss_probability * 100:.1f}% chance of exploitation within 30 days)."
         ),
         weight_used=weights.epss_weight,
     )
 
 
-def exploit_ref_factor(
-    has_exploit_ref: bool, weights: RiskPolicyWeights
-) -> ScoringFactor | None:
+def exploit_ref_factor(has_exploit_ref: bool, weights: RiskPolicyWeights) -> ScoringFactor | None:
     """Public exploit reference bonus."""
     if not has_exploit_ref:
         return None
@@ -87,7 +85,9 @@ def exploit_ref_factor(
     )
 
 
-def confidence_factor(confidence: str, match_method: str, weights: RiskPolicyWeights) -> ScoringFactor:
+def confidence_factor(
+    confidence: str, match_method: str, weights: RiskPolicyWeights
+) -> ScoringFactor:
     """Match confidence contribution."""
     conf_map = {
         "high": ("HIGH", weights.confidence_high),
@@ -136,8 +136,16 @@ def service_exposure_factor(
 ) -> ScoringFactor | None:
     """Bonus for commonly targeted services/ports."""
     high_value_services = {
-        "http", "https", "ssh", "ftp", "smb", "rdp",
-        "telnet", "mysql", "postgresql", "mssql",
+        "http",
+        "https",
+        "ssh",
+        "ftp",
+        "smb",
+        "rdp",
+        "telnet",
+        "mysql",
+        "postgresql",
+        "mssql",
     }
     high_value_ports = {21, 22, 23, 25, 80, 443, 445, 3306, 3389, 5432, 8080, 8443}
 
@@ -172,4 +180,3 @@ def asset_criticality_factor(
         ),
         weight_used=weights.asset_criticality_critical,
     )
-

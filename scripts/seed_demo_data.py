@@ -539,7 +539,9 @@ def seed_demo_data(target_key: str = "all") -> list[str]:
     elif target_key in TARGET_CONFIGS:
         seeded.append(seed_target(target_key))
     else:
-        print(f"[!] Unknown target: {target_key}. Choose from: {list(TARGET_CONFIGS.keys())} or 'all'")
+        print(
+            f"[!] Unknown target: {target_key}. Choose from: {list(TARGET_CONFIGS.keys())} or 'all'"
+        )
         sys.exit(1)
 
     print("\n[+] Evaluation corpus successfully initialized in SQLite database!")
@@ -548,11 +550,19 @@ def seed_demo_data(target_key: str = "all") -> list[str]:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Seed multi-target evaluation corpus into AEGIS-Recon DB")
+    parser = argparse.ArgumentParser(
+        description="Seed multi-target evaluation corpus into AEGIS-Recon DB"
+    )
     parser.add_argument(
         "--target",
         default="all",
-        choices=["all", "metasploitable2", "metasploitable3-win", "metasploitable3-linux", "kioptrix"],
+        choices=[
+            "all",
+            "metasploitable2",
+            "metasploitable3-win",
+            "metasploitable3-linux",
+            "kioptrix",
+        ],
         help="Target environment to seed (default: all)",
     )
     args = parser.parse_args()

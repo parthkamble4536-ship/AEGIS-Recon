@@ -241,9 +241,7 @@ class TestCPEVersionRange:
 class TestVendorProductVersion:
     def test_vendor_product_version_all_in_description(self) -> None:
         """All three fields in CVE description → MEDIUM, vendor_product_version."""
-        vuln = _make_vuln(
-            description="vsftpd 2.3.4 by Beane (vsftpd vendor) contains a backdoor."
-        )
+        vuln = _make_vuln(description="vsftpd 2.3.4 by Beane (vsftpd vendor) contains a backdoor.")
         svc = NormalizedService(
             vendor="beane",
             product="vsftpd",
@@ -409,9 +407,7 @@ class TestEdgeCases:
         """Malformed CPE string → graceful fallback, no exception."""
         vuln = _make_vuln(
             description="openssh vulnerability.",
-            cpe_matches=[
-                {"criteria": "not-a-valid-cpe:::", "vulnerable": True}
-            ],
+            cpe_matches=[{"criteria": "not-a-valid-cpe:::", "vulnerable": True}],
         )
         svc = _make_service(cpe="MALFORMED::CPE::STRING")
 

@@ -60,14 +60,12 @@ def explain_asset_priority_difference(asset_a: Asset, asset_b: Asset) -> str:
 
     if asset_a.criticality != asset_b.criticality:
         reasons.append(
-            f"Asset A has {asset_a.criticality} criticality vs "
-            f"{asset_b.criticality} on Asset B."
+            f"Asset A has {asset_a.criticality} criticality vs {asset_b.criticality} on Asset B."
         )
 
     if asset_a.environment != asset_b.environment:
         reasons.append(
-            f"Asset A is in {asset_a.environment} environment vs "
-            f"{asset_b.environment} on Asset B."
+            f"Asset A is in {asset_a.environment} environment vs {asset_b.environment} on Asset B."
         )
 
     if asset_a.internet_exposed != asset_b.internet_exposed:
@@ -78,7 +76,6 @@ def explain_asset_priority_difference(asset_a: Asset, asset_b: Asset) -> str:
     if not reasons:
         return "Assets have equivalent context — priority difference driven by other factors."
 
-    return (
-        "This finding has a higher priority on Asset A than Asset B because: "
-        + " ".join(reasons)
+    return "This finding has a higher priority on Asset A than Asset B because: " + " ".join(
+        reasons
     )

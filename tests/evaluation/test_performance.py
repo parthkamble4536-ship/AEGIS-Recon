@@ -20,20 +20,22 @@ def _make_findings(n: int) -> list[dict[str, Any]]:
     """Generate n synthetic finding dicts for benchmarking."""
     findings = []
     for i in range(n):
-        findings.append({
-            "finding_id": f"f-{i:05d}",
-            "cve_id": f"CVE-2021-{1000 + i}",
-            "host_ip": f"10.0.{i // 256}.{i % 256}",
-            "port": 80 + (i % 1000),
-            "protocol": "tcp",
-            "service_name": "http",
-            "cvss_score": 5.0 + (i % 50) / 10,
-            "severity": "medium",
-            "priority_score": 40.0 + (i % 60),
-            "is_kev": i % 20 == 0,
-            "confidence": "medium",
-            "evidence_type": "hypothesis",
-        })
+        findings.append(
+            {
+                "finding_id": f"f-{i:05d}",
+                "cve_id": f"CVE-2021-{1000 + i}",
+                "host_ip": f"10.0.{i // 256}.{i % 256}",
+                "port": 80 + (i % 1000),
+                "protocol": "tcp",
+                "service_name": "http",
+                "cvss_score": 5.0 + (i % 50) / 10,
+                "severity": "medium",
+                "priority_score": 40.0 + (i % 60),
+                "is_kev": i % 20 == 0,
+                "confidence": "medium",
+                "evidence_type": "hypothesis",
+            }
+        )
     return findings
 
 
@@ -76,9 +78,17 @@ class TestPerformance:
         for key in keys_b - keys_a:
             fb = index_b[key]
             diff.new_findings.append(
-                DiffEntry(fb["cve_id"], fb["host_ip"], fb["port"], fb["protocol"],
-                          fb["service_name"], FindingState.NEW, "a", "b",
-                          finding_b_id=fb["finding_id"])
+                DiffEntry(
+                    fb["cve_id"],
+                    fb["host_ip"],
+                    fb["port"],
+                    fb["protocol"],
+                    fb["service_name"],
+                    FindingState.NEW,
+                    "a",
+                    "b",
+                    finding_b_id=fb["finding_id"],
+                )
             )
 
         elapsed = time.perf_counter() - start
@@ -109,16 +119,32 @@ class TestPerformance:
         for key in keys_b - keys_a:
             fb = index_b[key]
             diff.new_findings.append(
-                DiffEntry(fb["cve_id"], fb["host_ip"], fb["port"], fb["protocol"],
-                          fb["service_name"], FindingState.NEW, "a", "b",
-                          finding_b_id=fb["finding_id"])
+                DiffEntry(
+                    fb["cve_id"],
+                    fb["host_ip"],
+                    fb["port"],
+                    fb["protocol"],
+                    fb["service_name"],
+                    FindingState.NEW,
+                    "a",
+                    "b",
+                    finding_b_id=fb["finding_id"],
+                )
             )
         for key in keys_a - keys_b:
             fa = index_a[key]
             diff.resolved_findings.append(
-                DiffEntry(fa["cve_id"], fa["host_ip"], fa["port"], fa["protocol"],
-                          fa["service_name"], FindingState.RESOLVED, "a", "b",
-                          finding_a_id=fa["finding_id"])
+                DiffEntry(
+                    fa["cve_id"],
+                    fa["host_ip"],
+                    fa["port"],
+                    fa["protocol"],
+                    fa["service_name"],
+                    FindingState.RESOLVED,
+                    "a",
+                    "b",
+                    finding_a_id=fa["finding_id"],
+                )
             )
 
         elapsed = time.perf_counter() - start
@@ -166,9 +192,16 @@ class TestPerformance:
         chains = []
         for i in range(20):
             items = [
-                Evidence(f"e{i}-{j}", f"f{i}", EvidenceType.HYPOTHESIS,
-                         EvidenceSource.AEGIS_RULE, "rule:match", "2024-01-01T00:00:00Z",
-                         f"hash{i}{j}", f"Description {j}")
+                Evidence(
+                    f"e{i}-{j}",
+                    f"f{i}",
+                    EvidenceType.HYPOTHESIS,
+                    EvidenceSource.AEGIS_RULE,
+                    "rule:match",
+                    "2024-01-01T00:00:00Z",
+                    f"hash{i}{j}",
+                    f"Description {j}",
+                )
                 for j in range(5)
             ]
             chain = EvidenceChain(finding_id=f"f{i}", items=items)
@@ -178,4 +211,3 @@ class TestPerformance:
 
         assert elapsed < 1.0, f"20 evidence chains took {elapsed:.3f}s (expected < 1.0s)"
         assert len(chains) == 20
-

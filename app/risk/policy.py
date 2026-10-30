@@ -62,4 +62,3 @@ def load_policy(policy_path: Path | None = None) -> RiskPolicyWeights:
     except Exception as exc:  # noqa: BLE001
         logger.warning("risk_policy_load_failed", error=str(exc), fallback="defaults")
         return RiskPolicyWeights()
-

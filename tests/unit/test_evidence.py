@@ -71,29 +71,78 @@ class TestEvidenceModels:
 
     def test_evidence_chain_strongest_type_observed_wins(self):
         """OBSERVED beats all others."""
-        chain = EvidenceChain(finding_id="f1", items=[
-            Evidence("e1", "f1", EvidenceType.HYPOTHESIS, EvidenceSource.AEGIS_RULE,
-                     "", "2024-01-01T00:00:00Z", "", "Hypothesis"),
-            Evidence("e2", "f1", EvidenceType.OBSERVED, EvidenceSource.NMAP,
-                     "", "2024-01-01T00:00:00Z", "", "Observed"),
-        ])
+        chain = EvidenceChain(
+            finding_id="f1",
+            items=[
+                Evidence(
+                    "e1",
+                    "f1",
+                    EvidenceType.HYPOTHESIS,
+                    EvidenceSource.AEGIS_RULE,
+                    "",
+                    "2024-01-01T00:00:00Z",
+                    "",
+                    "Hypothesis",
+                ),
+                Evidence(
+                    "e2",
+                    "f1",
+                    EvidenceType.OBSERVED,
+                    EvidenceSource.NMAP,
+                    "",
+                    "2024-01-01T00:00:00Z",
+                    "",
+                    "Observed",
+                ),
+            ],
+        )
         assert chain.strongest_type == EvidenceType.OBSERVED
 
     def test_evidence_chain_strongest_type_external_beats_hypothesis(self):
-        chain = EvidenceChain(finding_id="f1", items=[
-            Evidence("e1", "f1", EvidenceType.HYPOTHESIS, EvidenceSource.AEGIS_RULE,
-                     "", "2024-01-01T00:00:00Z", "", "Version match"),
-            Evidence("e2", "f1", EvidenceType.EXTERNAL_INTELLIGENCE, EvidenceSource.NVD,
-                     "", "2024-01-01T00:00:00Z", "", "NVD record"),
-        ])
+        chain = EvidenceChain(
+            finding_id="f1",
+            items=[
+                Evidence(
+                    "e1",
+                    "f1",
+                    EvidenceType.HYPOTHESIS,
+                    EvidenceSource.AEGIS_RULE,
+                    "",
+                    "2024-01-01T00:00:00Z",
+                    "",
+                    "Version match",
+                ),
+                Evidence(
+                    "e2",
+                    "f1",
+                    EvidenceType.EXTERNAL_INTELLIGENCE,
+                    EvidenceSource.NVD,
+                    "",
+                    "2024-01-01T00:00:00Z",
+                    "",
+                    "NVD record",
+                ),
+            ],
+        )
         assert chain.strongest_type == EvidenceType.EXTERNAL_INTELLIGENCE
 
     def test_evidence_chain_strongest_type_hypothesis_default(self):
         """When only HYPOTHESIS exists, returns HYPOTHESIS."""
-        chain = EvidenceChain(finding_id="f1", items=[
-            Evidence("e1", "f1", EvidenceType.HYPOTHESIS, EvidenceSource.AEGIS_RULE,
-                     "", "2024-01-01T00:00:00Z", "", "Match"),
-        ])
+        chain = EvidenceChain(
+            finding_id="f1",
+            items=[
+                Evidence(
+                    "e1",
+                    "f1",
+                    EvidenceType.HYPOTHESIS,
+                    EvidenceSource.AEGIS_RULE,
+                    "",
+                    "2024-01-01T00:00:00Z",
+                    "",
+                    "Match",
+                ),
+            ],
+        )
         assert chain.strongest_type == EvidenceType.HYPOTHESIS
 
     def test_evidence_chain_strongest_type_empty_chain(self):
@@ -102,21 +151,59 @@ class TestEvidenceModels:
         assert chain.strongest_type == EvidenceType.HYPOTHESIS
 
     def test_evidence_chain_sources(self):
-        chain = EvidenceChain(finding_id="f1", items=[
-            Evidence("e1", "f1", EvidenceType.HYPOTHESIS, EvidenceSource.AEGIS_RULE,
-                     "", "2024-01-01T00:00:00Z", "", ""),
-            Evidence("e2", "f1", EvidenceType.EXTERNAL_INTELLIGENCE, EvidenceSource.NVD,
-                     "", "2024-01-01T00:00:00Z", "", ""),
-            Evidence("e3", "f1", EvidenceType.EXTERNAL_INTELLIGENCE, EvidenceSource.NVD,
-                     "", "2024-01-01T00:00:00Z", "", ""),  # duplicate source
-        ])
+        chain = EvidenceChain(
+            finding_id="f1",
+            items=[
+                Evidence(
+                    "e1",
+                    "f1",
+                    EvidenceType.HYPOTHESIS,
+                    EvidenceSource.AEGIS_RULE,
+                    "",
+                    "2024-01-01T00:00:00Z",
+                    "",
+                    "",
+                ),
+                Evidence(
+                    "e2",
+                    "f1",
+                    EvidenceType.EXTERNAL_INTELLIGENCE,
+                    EvidenceSource.NVD,
+                    "",
+                    "2024-01-01T00:00:00Z",
+                    "",
+                    "",
+                ),
+                Evidence(
+                    "e3",
+                    "f1",
+                    EvidenceType.EXTERNAL_INTELLIGENCE,
+                    EvidenceSource.NVD,
+                    "",
+                    "2024-01-01T00:00:00Z",
+                    "",
+                    "",
+                ),  # duplicate source
+            ],
+        )
         assert chain.sources == ["aegis_rule", "nvd"]  # sorted, deduplicated
 
     def test_evidence_chain_summary_structure(self):
-        chain = EvidenceChain(finding_id="f1", items=[
-            Evidence("e1", "f1", EvidenceType.HYPOTHESIS, EvidenceSource.AEGIS_RULE,
-                     "rule:version-match", "2024-01-01T00:00:00Z", "abc", "Version matched"),
-        ])
+        chain = EvidenceChain(
+            finding_id="f1",
+            items=[
+                Evidence(
+                    "e1",
+                    "f1",
+                    EvidenceType.HYPOTHESIS,
+                    EvidenceSource.AEGIS_RULE,
+                    "rule:version-match",
+                    "2024-01-01T00:00:00Z",
+                    "abc",
+                    "Version matched",
+                ),
+            ],
+        )
         s = chain.summary()
         assert s["finding_id"] == "f1"
         assert s["evidence_count"] == 1
@@ -136,6 +223,7 @@ class TestEvidenceService:
         mock_create.side_effect = lambda e: e  # return as-is
 
         from app.evidence.service import record_nmap_evidence
+
         record_nmap_evidence("f1", "Port 22/tcp open - ssh detected")
 
         assert mock_create.called
@@ -150,6 +238,7 @@ class TestEvidenceService:
         mock_create.side_effect = lambda e: e
 
         from app.evidence.service import record_nvd_evidence
+
         record_nvd_evidence("f1", "CVE-2021-44228", "Log4Shell RCE")
 
         call_arg = mock_create.call_args[0][0]
@@ -162,6 +251,7 @@ class TestEvidenceService:
         mock_create.side_effect = lambda e: e
 
         from app.evidence.service import record_kev_evidence
+
         record_kev_evidence("f1", "CVE-2021-44228", "2024-01-15")
 
         call_arg = mock_create.call_args[0][0]
@@ -175,6 +265,7 @@ class TestEvidenceService:
         mock_create.side_effect = lambda e: e
 
         from app.evidence.service import record_epss_evidence
+
         record_epss_evidence("f1", "CVE-2021-44228", probability=0.975, percentile=99.5)
 
         call_arg = mock_create.call_args[0][0]
@@ -190,6 +281,7 @@ class TestEvidenceService:
         mock_create.side_effect = lambda e: e
 
         from app.evidence.service import record_version_match_hypothesis
+
         record_version_match_hypothesis("f1", "CVE-2021-44228", "7.2p2", "cpe-version-range")
 
         call_arg = mock_create.call_args[0][0]
@@ -204,6 +296,7 @@ class TestEvidenceService:
         mock_list.return_value = []
 
         from app.evidence.service import explain_why_flagged
+
         result = explain_why_flagged("f1")
 
         assert result["evidence_count"] == 0
@@ -213,15 +306,30 @@ class TestEvidenceService:
     def test_explain_why_flagged_with_items(self, mock_list):
         """explain_why_flagged returns explanation from evidence items."""
         mock_list.return_value = [
-            Evidence("e1", "f1", EvidenceType.EXTERNAL_INTELLIGENCE, EvidenceSource.NVD,
-                     "https://nvd.nist.gov/", "2024-01-01T00:00:00Z", "abc",
-                     "CVE-2021-44228 affects log4j < 2.15.0"),
-            Evidence("e2", "f1", EvidenceType.HYPOTHESIS, EvidenceSource.AEGIS_RULE,
-                     "match:cpe-range", "2024-01-01T00:00:00Z", "def",
-                     "Version 2.14.1 matched vulnerable range"),
+            Evidence(
+                "e1",
+                "f1",
+                EvidenceType.EXTERNAL_INTELLIGENCE,
+                EvidenceSource.NVD,
+                "https://nvd.nist.gov/",
+                "2024-01-01T00:00:00Z",
+                "abc",
+                "CVE-2021-44228 affects log4j < 2.15.0",
+            ),
+            Evidence(
+                "e2",
+                "f1",
+                EvidenceType.HYPOTHESIS,
+                EvidenceSource.AEGIS_RULE,
+                "match:cpe-range",
+                "2024-01-01T00:00:00Z",
+                "def",
+                "Version 2.14.1 matched vulnerable range",
+            ),
         ]
 
         from app.evidence.service import explain_why_flagged
+
         result = explain_why_flagged("f1")
 
         assert result["evidence_count"] == 2
@@ -236,6 +344,7 @@ class TestEvidenceService:
 @pytest.fixture
 def client():
     from app.main import create_app
+
     app = create_app()
     return TestClient(app)
 
@@ -253,9 +362,16 @@ class TestEvidenceAPI:
     def test_get_evidence_with_items(self, mock_list, client):
         """GET /api/findings/{id}/evidence returns serialized evidence."""
         mock_list.return_value = [
-            Evidence("e1", "f1", EvidenceType.OBSERVED, EvidenceSource.NMAP,
-                     "nmap-scan", "2024-01-01T00:00:00Z", "abc123",
-                     "Port 22 open"),
+            Evidence(
+                "e1",
+                "f1",
+                EvidenceType.OBSERVED,
+                EvidenceSource.NMAP,
+                "nmap-scan",
+                "2024-01-01T00:00:00Z",
+                "abc123",
+                "Port 22 open",
+            ),
         ]
         resp = client.get("/api/findings/f1/evidence")
         assert resp.status_code == 200

@@ -49,8 +49,13 @@ def update_finding_remediation(
                    remediation_advisory_url = ?,
                    remediation_recommended_action = ?
                WHERE id = ?""",
-            (vendor or None, fixed_version or None, advisory_url or None,
-             recommended_action or None, finding_id),
+            (
+                vendor or None,
+                fixed_version or None,
+                advisory_url or None,
+                recommended_action or None,
+                finding_id,
+            ),
         )
         if cursor.rowcount == 0:
             return None
@@ -62,4 +67,3 @@ def update_finding_remediation(
 
     logger.info("remediation_updated", finding_id=finding_id, updated_by=updated_by)
     return dict(row)
-

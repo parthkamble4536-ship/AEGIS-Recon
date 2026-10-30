@@ -27,7 +27,9 @@ from app.parser.nmap_xml import ParsedService, parse_nmap_xml
 # ── Fixtures path ────────────────────────────────────────────────────────────
 
 FIXTURES_DIR = Path(__file__).parent.parent / "fixtures"
-GROUND_TRUTH_PATH = Path(__file__).parent.parent.parent / "data" / "evaluation" / "ground_truth.json"
+GROUND_TRUTH_PATH = (
+    Path(__file__).parent.parent.parent / "data" / "evaluation" / "ground_truth.json"
+)
 
 pytestmark = pytest.mark.evaluation
 
@@ -85,17 +87,11 @@ def _service_to_normalized(svc: ParsedService) -> NormalizedService:
     )
 
 
-def compute_metrics(
-    tp: int, fp: int, fn: int, tn: int
-) -> tuple[float, float, float]:
+def compute_metrics(tp: int, fp: int, fn: int, tn: int) -> tuple[float, float, float]:
     """Compute Precision, Recall, F1 from confusion matrix values."""
     precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
     recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-    f1 = (
-        2 * precision * recall / (precision + recall)
-        if (precision + recall) > 0
-        else 0.0
-    )
+    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
     return precision, recall, f1
 
 
@@ -357,27 +353,42 @@ class TestMetasploitable2CorrelationAccuracy:
             (
                 METASPLOITABLE2_VULN_DB["vsftpd"],
                 NormalizedService(
-                    vendor="vsftpd", product="vsftpd", version="2.3.4",
+                    vendor="vsftpd",
+                    product="vsftpd",
+                    version="2.3.4",
                     cpe="cpe:/a:vsftpd:vsftpd:2.3.4",
-                    protocol="tcp", port=21, service_name="ftp", confidence="HIGH",
+                    protocol="tcp",
+                    port=21,
+                    service_name="ftp",
+                    confidence="HIGH",
                 ),
                 "CVE-2011-2523",
             ),
             (
                 METASPLOITABLE2_VULN_DB["openssh"],
                 NormalizedService(
-                    vendor="openbsd", product="openssh", version="4.7p1",
+                    vendor="openbsd",
+                    product="openssh",
+                    version="4.7p1",
                     cpe="cpe:/a:openbsd:openssh:4.7p1",
-                    protocol="tcp", port=22, service_name="ssh", confidence="HIGH",
+                    protocol="tcp",
+                    port=22,
+                    service_name="ssh",
+                    confidence="HIGH",
                 ),
                 "CVE-2008-5161",
             ),
             (
                 METASPLOITABLE2_VULN_DB["samba"],
                 NormalizedService(
-                    vendor="samba", product="samba", version="3.0.20",
+                    vendor="samba",
+                    product="samba",
+                    version="3.0.20",
                     cpe="cpe:/a:samba:samba:3.0.20",
-                    protocol="tcp", port=139, service_name="netbios-ssn", confidence="HIGH",
+                    protocol="tcp",
+                    port=139,
+                    service_name="netbios-ssn",
+                    confidence="HIGH",
                 ),
                 "CVE-2007-2447",
             ),
@@ -393,9 +404,7 @@ class TestMetasploitable2CorrelationAccuracy:
                 fn += 1
 
         _, recall, _ = compute_metrics(tp, 0, fn, 0)
-        assert recall >= 0.5, (
-            f"Recall too low on Metasploitable2: {recall:.2f} (TP={tp}, FN={fn})"
-        )
+        assert recall >= 0.5, f"Recall too low on Metasploitable2: {recall:.2f} (TP={tp}, FN={fn})"
 
     def test_no_false_positives_from_empty_vuln_db(self):
         """Services with empty vulnerability DB should produce no matches."""
@@ -656,26 +665,62 @@ class TestKioptrixCorrelationAccuracy:
     def test_recall_on_kioptrix_known_vulnerable(self):
         """Recall >= 0.5 for Kioptrix known-vulnerable services."""
         test_cases = [
-            ("apache", NormalizedService(
-                vendor="apache", product="http_server", version="1.3.20",
-                cpe="cpe:/a:apache:http_server:1.3.20",
-                protocol="tcp", port=80, service_name="http", confidence="HIGH",
-            ), "CVE-2002-0082"),
-            ("samba", NormalizedService(
-                vendor="samba", product="samba", version="2.2.1a",
-                cpe="cpe:/a:samba:samba:2.2.1a",
-                protocol="tcp", port=139, service_name="netbios-ssn", confidence="HIGH",
-            ), "CVE-2003-0201"),
-            ("openssl", NormalizedService(
-                vendor="openssl", product="openssl", version="0.9.6b",
-                cpe="cpe:/a:openssl:openssl:0.9.6b",
-                protocol="tcp", port=443, service_name="ssl/http", confidence="HIGH",
-            ), "CVE-2002-0656"),
-            ("openssh", NormalizedService(
-                vendor="openbsd", product="openssh", version="2.9p2",
-                cpe="cpe:/a:openbsd:openssh:2.9p2",
-                protocol="tcp", port=22, service_name="ssh", confidence="HIGH",
-            ), "CVE-2001-0817"),
+            (
+                "apache",
+                NormalizedService(
+                    vendor="apache",
+                    product="http_server",
+                    version="1.3.20",
+                    cpe="cpe:/a:apache:http_server:1.3.20",
+                    protocol="tcp",
+                    port=80,
+                    service_name="http",
+                    confidence="HIGH",
+                ),
+                "CVE-2002-0082",
+            ),
+            (
+                "samba",
+                NormalizedService(
+                    vendor="samba",
+                    product="samba",
+                    version="2.2.1a",
+                    cpe="cpe:/a:samba:samba:2.2.1a",
+                    protocol="tcp",
+                    port=139,
+                    service_name="netbios-ssn",
+                    confidence="HIGH",
+                ),
+                "CVE-2003-0201",
+            ),
+            (
+                "openssl",
+                NormalizedService(
+                    vendor="openssl",
+                    product="openssl",
+                    version="0.9.6b",
+                    cpe="cpe:/a:openssl:openssl:0.9.6b",
+                    protocol="tcp",
+                    port=443,
+                    service_name="ssl/http",
+                    confidence="HIGH",
+                ),
+                "CVE-2002-0656",
+            ),
+            (
+                "openssh",
+                NormalizedService(
+                    vendor="openbsd",
+                    product="openssh",
+                    version="2.9p2",
+                    cpe="cpe:/a:openbsd:openssh:2.9p2",
+                    protocol="tcp",
+                    port=22,
+                    service_name="ssh",
+                    confidence="HIGH",
+                ),
+                "CVE-2001-0817",
+            ),
         ]
 
         tp = fn = 0
@@ -688,9 +733,7 @@ class TestKioptrixCorrelationAccuracy:
                 fn += 1
 
         _, recall, _ = compute_metrics(tp, 0, fn, 0)
-        assert recall >= 0.5, (
-            f"Recall too low for Kioptrix: {recall:.2f} (TP={tp}, FN={fn})"
-        )
+        assert recall >= 0.5, f"Recall too low for Kioptrix: {recall:.2f} (TP={tp}, FN={fn})"
 
     def test_minimum_findings_threshold(self):
         """Mock DB covers at least the minimum required Kioptrix findings."""
@@ -742,9 +785,9 @@ class TestCorrelationMetrics:
 
         high_conf = [r for r in results if r.confidence == MatchConfidence.HIGH]
         for r in high_conf:
-            assert r.match_method in (
-                MatchMethod.CPE_EXACT, MatchMethod.CPE_VERSION_RANGE
-            ), f"Unexpected method for HIGH confidence: {r.match_method}"
+            assert r.match_method in (MatchMethod.CPE_EXACT, MatchMethod.CPE_VERSION_RANGE), (
+                f"Unexpected method for HIGH confidence: {r.match_method}"
+            )
 
     def test_all_fixture_files_exist(self):
         """All 4 fixture files referenced in ground truth must exist on disk."""
@@ -752,9 +795,7 @@ class TestCorrelationMetrics:
         root = Path(__file__).parent.parent.parent
         for _fixture_name, data in ground_truth["fixtures"].items():
             fixture_path = root / data["fixture_path"]
-            assert fixture_path.exists(), (
-                f"Ground truth fixture missing: {data['fixture_path']}"
-            )
+            assert fixture_path.exists(), f"Ground truth fixture missing: {data['fixture_path']}"
 
     def test_ground_truth_schema_valid(self):
         """Ground truth JSON has the required schema structure."""

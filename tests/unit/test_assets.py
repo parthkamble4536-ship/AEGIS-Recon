@@ -177,7 +177,9 @@ class TestAssetRepository:
             ("high-1", AssetCriticality.HIGH, "10.0.0.2"),
             ("med-1", AssetCriticality.MEDIUM, "10.0.0.3"),
         ]:
-            create_asset(Asset(asset_id=asset_id, criticality=crit, ip=ip, environment=AssetEnvironment.LAB))
+            create_asset(
+                Asset(asset_id=asset_id, criticality=crit, ip=ip, environment=AssetEnvironment.LAB)
+            )
 
         assets = list_assets()
         crits = [a.criticality for a in assets]
@@ -216,7 +218,12 @@ class TestAssetRepository:
         """Delete an asset."""
         from app.assets.repository import create_asset, delete_asset, get_asset
 
-        asset = Asset(asset_id="del-001", ip="10.0.0.6", environment=AssetEnvironment.LAB, criticality=AssetCriticality.LOW)
+        asset = Asset(
+            asset_id="del-001",
+            ip="10.0.0.6",
+            environment=AssetEnvironment.LAB,
+            criticality=AssetCriticality.LOW,
+        )
         create_asset(asset)
         assert delete_asset("del-001") is True
         assert get_asset("del-001") is None
@@ -231,7 +238,12 @@ class TestAssetRepository:
         """Created asset has non-empty timestamps."""
         from app.assets.repository import create_asset
 
-        asset = Asset(asset_id="ts-001", ip="10.0.0.7", environment=AssetEnvironment.LAB, criticality=AssetCriticality.LOW)
+        asset = Asset(
+            asset_id="ts-001",
+            ip="10.0.0.7",
+            environment=AssetEnvironment.LAB,
+            criticality=AssetCriticality.LOW,
+        )
         created = create_asset(asset)
         assert created.created_at != ""
         assert created.updated_at != ""
@@ -275,18 +287,38 @@ class TestAssetService:
 
     def test_explain_asset_priority_difference_criticality(self) -> None:
         """Explanation mentions criticality difference."""
-        a = Asset(asset_id="a", ip="1.1.1.1", environment=AssetEnvironment.PRODUCTION,
-                  criticality=AssetCriticality.CRITICAL, internet_exposed=True)
-        b = Asset(asset_id="b", ip="2.2.2.2", environment=AssetEnvironment.LAB,
-                  criticality=AssetCriticality.LOW, internet_exposed=False)
+        a = Asset(
+            asset_id="a",
+            ip="1.1.1.1",
+            environment=AssetEnvironment.PRODUCTION,
+            criticality=AssetCriticality.CRITICAL,
+            internet_exposed=True,
+        )
+        b = Asset(
+            asset_id="b",
+            ip="2.2.2.2",
+            environment=AssetEnvironment.LAB,
+            criticality=AssetCriticality.LOW,
+            internet_exposed=False,
+        )
         explanation = explain_asset_priority_difference(a, b)
         assert "CRITICAL" in explanation or "criticality" in explanation.lower()
 
     def test_explain_identical_assets(self) -> None:
         """Identical assets → 'equivalent context' explanation."""
-        a = Asset(asset_id="a", ip="1.1.1.1", environment=AssetEnvironment.LAB,
-                  criticality=AssetCriticality.LOW, internet_exposed=False)
-        b = Asset(asset_id="b", ip="2.2.2.2", environment=AssetEnvironment.LAB,
-                  criticality=AssetCriticality.LOW, internet_exposed=False)
+        a = Asset(
+            asset_id="a",
+            ip="1.1.1.1",
+            environment=AssetEnvironment.LAB,
+            criticality=AssetCriticality.LOW,
+            internet_exposed=False,
+        )
+        b = Asset(
+            asset_id="b",
+            ip="2.2.2.2",
+            environment=AssetEnvironment.LAB,
+            criticality=AssetCriticality.LOW,
+            internet_exposed=False,
+        )
         explanation = explain_asset_priority_difference(a, b)
         assert "equivalent" in explanation.lower()

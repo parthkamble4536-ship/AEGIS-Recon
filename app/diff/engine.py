@@ -65,9 +65,18 @@ def _get_scan_findings(scan_id: str) -> list[dict[str, Any]]:
         ).fetchall()
 
     columns = [
-        "finding_id", "cve_id", "host_ip", "port", "protocol",
-        "service_name", "cvss_score", "severity", "priority_score",
-        "is_kev", "confidence", "evidence_type",
+        "finding_id",
+        "cve_id",
+        "host_ip",
+        "port",
+        "protocol",
+        "service_name",
+        "cvss_score",
+        "severity",
+        "priority_score",
+        "is_kev",
+        "confidence",
+        "evidence_type",
     ]
     return [dict(zip(columns, row, strict=False)) for row in rows]
 
@@ -93,7 +102,16 @@ def _get_scan_services(scan_id: str) -> list[dict[str, Any]]:
             (scan_id,),
         ).fetchall()
 
-    columns = ["service_id", "host_ip", "port", "protocol", "service_name", "product", "version", "state"]
+    columns = [
+        "service_id",
+        "host_ip",
+        "port",
+        "protocol",
+        "service_name",
+        "product",
+        "version",
+        "state",
+    ]
     return [dict(zip(columns, row, strict=False)) for row in rows]
 
 

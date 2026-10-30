@@ -114,13 +114,24 @@ class TestDiffToDict:
     def test_diff_to_dict_structure(self):
         diff = ScanDiff(scan_a_id="A", scan_b_id="B")
         diff.new_findings.append(
-            DiffEntry("CVE-1", "1.1.1.1", 80, "tcp", "http", FindingState.NEW, "A", "B",
-                      finding_b_id="f1")
+            DiffEntry(
+                "CVE-1", "1.1.1.1", 80, "tcp", "http", FindingState.NEW, "A", "B", finding_b_id="f1"
+            )
         )
         diff.changed_findings.append(
-            DiffEntry("CVE-2", "1.1.1.1", 443, "tcp", "https", FindingState.CHANGED, "A", "B",
-                      finding_a_id="fa", finding_b_id="fb",
-                      changes={"cvss_score": (7.0, 9.8)})
+            DiffEntry(
+                "CVE-2",
+                "1.1.1.1",
+                443,
+                "tcp",
+                "https",
+                FindingState.CHANGED,
+                "A",
+                "B",
+                finding_a_id="fa",
+                finding_b_id="fb",
+                changes={"cvss_score": (7.0, 9.8)},
+            )
         )
 
         result = diff_to_dict(diff)
@@ -145,9 +156,21 @@ class TestDiffToDict:
 class TestCompareScansMocked:
     """Test compare_scans() with fully mocked database calls."""
 
-    def _make_finding(self, cve_id, ip, port, protocol="tcp", service="http",
-                      finding_id=None, priority=50.0, cvss=7.0, severity="high",
-                      is_kev=0, confidence="medium", evidence="hypothesis"):
+    def _make_finding(
+        self,
+        cve_id,
+        ip,
+        port,
+        protocol="tcp",
+        service="http",
+        finding_id=None,
+        priority=50.0,
+        cvss=7.0,
+        severity="high",
+        is_kev=0,
+        confidence="medium",
+        evidence="hypothesis",
+    ):
         return {
             "finding_id": finding_id or f"f-{cve_id}-{port}",
             "cve_id": cve_id,
@@ -186,6 +209,7 @@ class TestCompareScansMocked:
         mock_services.return_value = []
 
         from app.diff.engine import compare_scans
+
         diff = compare_scans("scan-a", "scan-b")
 
         assert len(diff.new_findings) == 1
@@ -203,6 +227,7 @@ class TestCompareScansMocked:
         mock_services.return_value = []
 
         from app.diff.engine import compare_scans
+
         diff = compare_scans("scan-a", "scan-b")
 
         assert len(diff.resolved_findings) == 1
@@ -220,6 +245,7 @@ class TestCompareScansMocked:
         mock_services.return_value = []
 
         from app.diff.engine import compare_scans
+
         diff = compare_scans("scan-a", "scan-b")
 
         assert len(diff.persistent_findings) == 1
@@ -236,6 +262,7 @@ class TestCompareScansMocked:
         mock_services.return_value = []
 
         from app.diff.engine import compare_scans
+
         diff = compare_scans("scan-a", "scan-b")
 
         assert len(diff.changed_findings) == 1
@@ -255,6 +282,7 @@ class TestCompareScansMocked:
         ]
 
         from app.diff.engine import compare_scans
+
         diff = compare_scans("scan-a", "scan-b")
 
         assert len(diff.new_services) == 1
@@ -271,6 +299,7 @@ class TestCompareScansMocked:
         ]
 
         from app.diff.engine import compare_scans
+
         diff = compare_scans("scan-a", "scan-b")
 
         assert len(diff.removed_services) == 1
@@ -283,6 +312,7 @@ class TestCompareScansMocked:
         mock_services.return_value = []
 
         from app.diff.engine import compare_scans
+
         diff = compare_scans("scan-a", "scan-b")
 
         assert diff.summary["new_findings"] == 0
@@ -308,7 +338,8 @@ class TestLifecycleRepository:
 
         # Simulate fetchone returning a dict-like row
         mock_conn.execute.return_value.fetchone.return_value = {
-            "id": "f1", "analyst_status": "triaged"
+            "id": "f1",
+            "analyst_status": "triaged",
         }
 
         # Should not raise
@@ -318,6 +349,7 @@ class TestLifecycleRepository:
     def test_update_finding_status_invalid_raises(self, mock_get_db):
         """Invalid status raises ValueError before touching DB."""
         from app.diff.repository import update_finding_status
+
         with pytest.raises(ValueError, match="Invalid status"):
             update_finding_status("finding-id", "not_a_valid_status")
 
@@ -325,18 +357,21 @@ class TestLifecycleRepository:
     def test_update_finding_decision_invalid_raises(self, mock_get_db):
         """Invalid decision raises ValueError."""
         from app.diff.repository import update_finding_decision
+
         with pytest.raises(ValueError, match="Invalid decision"):
             update_finding_decision("finding-id", "not_a_valid_decision")
 
     def test_all_statuses_are_valid(self):
         """All FindingStatus values are accepted by the validator set."""
         from app.diff.repository import _VALID_STATUS
+
         for status in FindingStatus:
             assert status.value in _VALID_STATUS
 
     def test_all_decisions_are_valid(self):
         """All AnalystDecision values are accepted by the validator set."""
         from app.diff.repository import _VALID_DECISION
+
         for decision in AnalystDecision:
             assert decision.value in _VALID_DECISION
 
@@ -347,6 +382,7 @@ class TestLifecycleRepository:
 @pytest.fixture
 def client():
     from app.main import create_app
+
     app = create_app()
     return TestClient(app)
 
@@ -361,6 +397,7 @@ class TestDiffAPI:
     def test_diff_success(self, mock_compare, client):
         """GET /api/scans/{id}/diff with valid params → 200."""
         from app.diff.models import ScanDiff
+
         mock_compare.return_value = ScanDiff(scan_a_id="a", scan_b_id="b")
         resp = client.get("/api/scans/b/diff?baseline=a")
         assert resp.status_code == 200

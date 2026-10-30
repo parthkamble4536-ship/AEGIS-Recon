@@ -43,10 +43,10 @@ class EvidenceType(StrEnum):
     so the provenance layer stays consistent with the existing system.
     """
 
-    OBSERVED = "observed"               # Directly observed fact (e.g., Nmap output)
+    OBSERVED = "observed"  # Directly observed fact (e.g., Nmap output)
     EXTERNAL_INTELLIGENCE = "external_intelligence"  # NVD, KEV, EPSS data
-    HYPOTHESIS = "hypothesis"           # Inferred from version match, not confirmed
-    RECOMMENDATION = "recommendation"   # Suggested action, not a confirmed finding
+    HYPOTHESIS = "hypothesis"  # Inferred from version match, not confirmed
+    RECOMMENDATION = "recommendation"  # Suggested action, not a confirmed finding
 
 
 @dataclass
@@ -135,4 +135,3 @@ class EvidenceChain:
                 for e in self.items
             ],
         }
-

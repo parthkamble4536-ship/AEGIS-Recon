@@ -252,12 +252,8 @@ class TestRiskEngineV2:
         default_policy = RiskPolicyWeights()
         boosted_policy = RiskPolicyWeights(kev_bonus=40.0)  # double KEV bonus
 
-        default_result = calculate_risk_v2(
-            cvss_score=5.0, is_kev=True, policy=default_policy
-        )
-        boosted_result = calculate_risk_v2(
-            cvss_score=5.0, is_kev=True, policy=boosted_policy
-        )
+        default_result = calculate_risk_v2(cvss_score=5.0, is_kev=True, policy=default_policy)
+        boosted_result = calculate_risk_v2(cvss_score=5.0, is_kev=True, policy=boosted_policy)
         assert boosted_result.priority_score > default_result.priority_score
 
     def test_reproducibility_same_inputs_same_output(self) -> None:
@@ -294,9 +290,14 @@ class TestExplain:
 
     def test_explanation_contains_label(self) -> None:
         """explain_assessment output mentions the priority label."""
-        result = calculate_risk_v2(cvss_score=9.5, cvss_severity="CRITICAL", is_kev=True,
-                                   asset_criticality="CRITICAL", asset_environment="PRODUCTION",
-                                   epss_probability=0.95)
+        result = calculate_risk_v2(
+            cvss_score=9.5,
+            cvss_severity="CRITICAL",
+            is_kev=True,
+            asset_criticality="CRITICAL",
+            asset_environment="PRODUCTION",
+            epss_probability=0.95,
+        )
         explanation = explain_assessment(result)
         assert result.priority_label.upper() in explanation
 

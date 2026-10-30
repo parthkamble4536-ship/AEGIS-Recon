@@ -119,8 +119,14 @@ def update_asset(asset_id: str, updates: dict) -> Asset | None:
     now = datetime.now(UTC).isoformat()
 
     allowed_columns = {
-        "hostname", "ip", "environment", "criticality",
-        "owner", "business_service", "internet_exposed", "notes",
+        "hostname",
+        "ip",
+        "environment",
+        "criticality",
+        "owner",
+        "business_service",
+        "internet_exposed",
+        "notes",
     }
 
     # Build (column, value) pairs for allowed updates only

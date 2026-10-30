@@ -100,9 +100,7 @@ def record_kev_evidence(
 
     This is EXTERNAL_INTELLIGENCE evidence (known exploited in the wild).
     """
-    description = (
-        f"{cve_id} is listed in the CISA Known Exploited Vulnerabilities catalog."
-    )
+    description = f"{cve_id} is listed in the CISA Known Exploited Vulnerabilities catalog."
     if kev_due_date:
         description += f" Remediation due: {kev_due_date}."
 
@@ -231,7 +229,9 @@ def explain_why_flagged(finding_id: str) -> dict[str, Any]:
             record_nvd_evidence(
                 finding_id=finding_id,
                 cve_id=cve_id,
-                description=ev_detail or finding.get("description") or f"Intelligence correlated for {cve_id}",
+                description=ev_detail
+                or finding.get("description")
+                or f"Intelligence correlated for {cve_id}",
             )
 
             # 4. KEV if applicable
