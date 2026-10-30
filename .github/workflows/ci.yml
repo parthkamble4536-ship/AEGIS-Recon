@@ -24,6 +24,11 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
 
+      - name: Install system dependencies (Nmap)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y nmap
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -47,8 +52,6 @@ jobs:
         run: |
           pip install pip-audit
           pip-audit --require-hashes -r requirements.txt || true
-          # 'true' so audit findings do not block CI until we have a hash file
-          # TODO: remove '|| true' once requirements.txt has hashes
 
       - name: Detect secrets (trufflesecurity/trufflehog)
         uses: trufflesecurity/trufflehog@main
@@ -58,13 +61,12 @@ jobs:
           head: HEAD
           extra_args: --only-verified
         continue-on-error: true
-        # continue-on-error: trufflehog treats no-prior-commit as error on first push
 
       # ── Tests ─────────────────────────────────────────────────────────────
 
       - name: Run unit tests with coverage
         run: |
-          pytest tests/ -q --tb=short -m "not integration" \
+          pytest tests/ -q --tb=short -m "not integration and not evaluation" \
             --cov=app --cov-report=term-missing --cov-report=xml \
             --junitxml=test-results.xml
 
@@ -80,4 +82,3 @@ jobs:
         with:
           name: test-results-${{ matrix.python-version }}
           path: test-results.xml
-

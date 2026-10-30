@@ -1,0 +1,2 @@
+# Development, linting, and testing dependencies
+-r requirements.txt
