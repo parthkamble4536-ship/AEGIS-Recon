@@ -675,50 +675,205 @@ function renderFindings(findings, isHostDown = false) {
     }).join('');
 }
 
+// ─── Analysis Formatting Helpers ───────────────────────
+
+function splitIntoBulletItems(text) {
+    if (!text) return [];
+
+    // Check if text already has newlines or markdown bullet markers
+    const rawLines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    if (rawLines.length > 1) {
+        return rawLines.map(line => line.replace(/^[-*•\d+.)\]]\s*/, '').trim()).filter(Boolean);
+    }
+
+    // Split on periods that end sentences (followed by uppercase, digit, or symbol)
+    const sentences = text.split(/(?<=[.!?])\s+(?=[A-Z0-9\(\[\*•])/);
+    const bullets = [];
+
+    for (let i = 0; i < sentences.length; i++) {
+        let s = sentences[i].trim();
+        if (!s) continue;
+
+        // If this sentence is a connective follow-up, merge with previous bullet
+        if (bullets.length > 0 && /^(These should be|Manual verification is|A version match|Absence of findings|Match accuracy)/i.test(s)) {
+            bullets[bullets.length - 1] += ' ' + s;
+        } else {
+            bullets.push(s);
+        }
+    }
+
+    return bullets.length > 0 ? bullets : [text];
+}
+
+function highlightCyberTerms(text) {
+    if (!text) return '';
+    let escaped = escapeHtml(text);
+
+    // Highlight CVE IDs with monospace cyan pill
+    escaped = escaped.replace(/(CVE-\d{4}-\d{4,7})/g, '<code class="cve-inline-pill">$1</code>');
+
+    // Highlight CVSS >= X.X or CVSS: X.X
+    escaped = escaped.replace(/(CVSS\s*(?:&gt;=|=|:)?\s*\d+(?:\.\d+)?)/gi, '<strong class="text-amber">$1</strong>');
+
+    // Highlight HIGHEST PRIORITY:
+    escaped = escaped.replace(/(HIGHEST PRIORITY:?)/gi, '<span class="pill-badge pill-ruby pulse">⚠️ $1</span>');
+
+    // Highlight Note:
+    escaped = escaped.replace(/(Note:?)/gi, '<span class="pill-badge pill-cyan">ℹ️ $1</span>');
+
+    // Highlight Critical severity:
+    escaped = escaped.replace(/(Critical severity:?)/gi, '<span class="pill-badge pill-ruby">🔴 $1</span>');
+
+    // Highlight IPv4 addresses
+    escaped = escaped.replace(/\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b/g, '<span class="mono" style="color:var(--brand-sky); font-weight:600;">$1</span>');
+
+    // Highlight numbers + critical / high
+    escaped = escaped.replace(/(\b\d+\s+critical\b)/gi, '<strong class="text-ruby">$1</strong>');
+    escaped = escaped.replace(/(\b\d+\s+high\b)/gi, '<strong class="text-amber">$1</strong>');
+
+    return escaped;
+}
+
+function formatRecommendationItem(itemText) {
+    let clean = itemText.trim();
+    let badgeType = 'defense';
+    let badgeLabel = 'ACTION';
+
+    if (/^URGENT:?/i.test(clean)) {
+        badgeType = 'urgent';
+        badgeLabel = '⚡ URGENT';
+        clean = clean.replace(/^URGENT:?\s*/i, '');
+    } else if (/^(Address\s+critical|Critical:?)/i.test(clean)) {
+        badgeType = 'critical';
+        badgeLabel = 'CRITICAL';
+        clean = clean.replace(/^(Address\s+critical-severity\s+CVEs:?|Critical:?)\s*/i, 'Address critical CVEs: ');
+    } else if (/^(Review\s+and\s+remediate|High:?)/i.test(clean)) {
+        badgeType = 'high';
+        badgeLabel = 'HIGH';
+    } else if (/^(Verify\s+all\s+findings|Manual\s+verification)/i.test(clean)) {
+        badgeType = 'verify';
+        badgeLabel = 'VERIFY';
+    } else if (/^(Consider\s+network|Network\s+segmentation)/i.test(clean)) {
+        badgeType = 'defense';
+        badgeLabel = 'DEFENSE';
+    } else if (/^(Update\s+services|Patch)/i.test(clean)) {
+        badgeType = 'defense';
+        badgeLabel = 'UPDATE';
+    }
+
+    return `
+        <li class="analysis-recom-item recom-${badgeType}">
+            <span class="recom-badge recom-badge-${badgeType}">${badgeLabel}</span>
+            <div class="analysis-bullet-text">${highlightCyberTerms(clean)}</div>
+        </li>
+    `;
+}
+
+function renderBulletSection(title, icon, badgeLabel, badgeClass, text, glyph) {
+    if (!text) return '';
+    const items = splitIntoBulletItems(text);
+    if (!items.length) return '';
+
+    return `
+        <div class="analysis-section">
+            <div class="analysis-section-header">
+                <div class="analysis-section-title-wrap">
+                    <span class="analysis-section-icon">${icon}</span>
+                    <h4 class="analysis-section-title">${title}</h4>
+                </div>
+                <span class="analysis-section-badge ${badgeClass}">${badgeLabel}</span>
+            </div>
+            <ul class="analysis-bullet-list">
+                ${items.map(item => `
+                    <li class="analysis-bullet-item">
+                        <span class="analysis-bullet-glyph">${glyph}</span>
+                        <div class="analysis-bullet-text">${highlightCyberTerms(item)}</div>
+                    </li>
+                `).join('')}
+            </ul>
+        </div>
+    `;
+}
+
+function renderRecommendationsSection(recommendations) {
+    if (!recommendations || !recommendations.length) return '';
+    return `
+        <div class="analysis-section">
+            <div class="analysis-section-header">
+                <div class="analysis-section-title-wrap">
+                    <span class="analysis-section-icon">🛠️</span>
+                    <h4 class="analysis-section-title">Actionable Recommendations</h4>
+                </div>
+                <span class="analysis-section-badge badge-confidence">${recommendations.length} Mitigation Steps</span>
+            </div>
+            <ul class="analysis-recom-list">
+                ${recommendations.map(r => formatRecommendationItem(r)).join('')}
+            </ul>
+        </div>
+    `;
+}
+
 function renderAnalysisHTML(analysis, isHostDown = false) {
     if (!analysis || !analysis.summary) {
         if (isHostDown) {
-            return '<p style="color:var(--text-muted)">No analysis available — target host was unreachable during the scan.</p>';
+            return '<p style="color:var(--text-muted); padding:1rem;">No analysis available — target host was unreachable during the scan.</p>';
         }
-        return '<p style="color:var(--text-muted)">No analysis available. Click "Enrich CVEs" or run AI analysis.</p>';
+        return '<p style="color:var(--text-muted); padding:1rem;">No analysis available. Click "Enrich CVEs" or run AI analysis.</p>';
     }
 
     const method = analysis.analysis_method || 'deterministic';
     const isAi = method.toLowerCase().includes('gemini') || method.toLowerCase().includes('ai');
     const methodBadge = isAi
-        ? `<span class="badge badge-confidence">🤖 ${escapeHtml(method)}</span>`
-        : `<span class="badge badge-informational">⚙️ ${escapeHtml(method)}</span>`;
+        ? `<span class="badge badge-confidence">🤖 ${escapeHtml(method.toUpperCase())}</span>`
+        : `<span class="badge badge-informational">⚙️ ${escapeHtml(method.toUpperCase())}</span>`;
 
     return `
-        <div style="margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between;">
-            <div style="font-size: 0.8rem; color: var(--text-muted);">
-                Engine: ${methodBadge}
+        <div class="analysis-container-root">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.25rem;">
+                <div style="font-size: 0.8rem; color: var(--text-muted); display:flex; align-items:center; gap:0.5rem;">
+                    <span>Intelligence Engine:</span> ${methodBadge}
+                </div>
+                <span style="font-size: 0.72rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">GROUNDED RECON MODEL</span>
             </div>
+
+            ${renderBulletSection(
+                'Executive Summary',
+                '📋',
+                'Recon Overview',
+                'badge-scope',
+                analysis.summary,
+                '🔹'
+            )}
+
+            ${analysis.risk_overview ? renderBulletSection(
+                'Risk Overview & Exploitability',
+                '🚨',
+                'Threat Vectors',
+                'badge-critical',
+                analysis.risk_overview,
+                '⚡'
+            ) : ''}
+
+            ${renderRecommendationsSection(analysis.recommendations)}
+
+            ${analysis.confidence_notes ? renderBulletSection(
+                'Confidence & Evidence Notes',
+                '🎯',
+                'Evidence Calibration',
+                'badge-confidence',
+                analysis.confidence_notes,
+                '🎯'
+            ) : ''}
+
+            ${analysis.limitations ? renderBulletSection(
+                'Assessment Scope & Limitations',
+                '🛡️',
+                'Operational Boundary',
+                'badge-informational',
+                analysis.limitations,
+                '🛡️'
+            ) : ''}
         </div>
-        <div class="analysis-section">
-            <h4>Executive Summary</h4>
-            <p>${escapeHtml(analysis.summary)}</p>
-        </div>
-        ${analysis.risk_overview ? `
-        <div class="analysis-section">
-            <h4>Risk Overview & Exploitability</h4>
-            <p>${escapeHtml(analysis.risk_overview)}</p>
-        </div>` : ''}
-        ${analysis.recommendations && analysis.recommendations.length ? `
-        <div class="analysis-section">
-            <h4>Actionable Recommendations</h4>
-            <ol>${analysis.recommendations.map(r => `<li>${escapeHtml(r)}</li>`).join('')}</ol>
-        </div>` : ''}
-        ${analysis.confidence_notes ? `
-        <div class="analysis-section">
-            <h4>Confidence Notes</h4>
-            <p>${escapeHtml(analysis.confidence_notes)}</p>
-        </div>` : ''}
-        ${analysis.limitations ? `
-        <div class="analysis-section">
-            <h4>Assessment Limitations</h4>
-            <p>${escapeHtml(analysis.limitations)}</p>
-        </div>` : ''}
     `;
 }
 
