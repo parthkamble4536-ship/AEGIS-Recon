@@ -1,8 +1,8 @@
 """
-AEGIS-Recon Professional Academic Project Poster Generator.
-Creates a self-contained, high-resolution, light-theme, editable academic poster
+AEGIS-Recon Professional Academic Project Poster Generator (Enhanced Version).
+Generates a self-contained, light-theme, publication-ready academic exhibition poster
 featuring Vidyalankar Institute of Technology (VIT NAAC A+) branding, live in-browser editing,
-persistence, PDF export, and embedded project telemetry.
+persistence, PDF export, zero blank spaces, and enhanced system architecture visuals.
 """
 
 from __future__ import annotations
@@ -39,7 +39,6 @@ def generate_poster_html() -> str:
     ai_uri = get_base64_data_uri(ai_path)
 
     # Clean SVG QR Code pointing to https://github.com/parthkamble4536-ship/AEGIS-Recon
-    # Generates a crisp vector QR code
     qr_svg = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-16 h-16 rounded-md border border-slate-300 p-1 bg-white shadow-sm">
       <rect width="100" height="100" fill="#ffffff"/>
       <!-- QR Position Markers -->
@@ -108,10 +107,6 @@ def generate_poster_html() -> str:
 
     .font-mono {{
       font-family: 'JetBrains Mono', monospace;
-    }}
-
-    .font-serif-title {{
-      font-family: 'Cinzel', serif;
     }}
 
     /* Editable Outline Styling */
@@ -249,17 +244,17 @@ def generate_poster_html() -> str:
   <!-- ========================================================================= -->
   <!-- MAIN POSTER BOARD (Optimized for Exhibition & Print)                      -->
   <!-- ========================================================================= -->
-  <main id="poster-root" class="poster-container max-w-[1720px] mx-auto bg-white border border-slate-300 rounded-2xl shadow-xl overflow-hidden p-6 md:p-8">
+  <main id="poster-root" class="poster-container max-w-[1740px] mx-auto bg-white border border-slate-300 rounded-2xl shadow-xl overflow-hidden p-6 md:p-8">
 
     <!-- ======================================================================= -->
-    <!-- HEADER SECTION                                                          -->
+    <!-- HEADER SECTION (Formatted with Clean Team Badges)                       -->
     <!-- ======================================================================= -->
-    <header class="border-b-2 border-slate-200 pb-5 mb-6">
+    <header class="border-b-2 border-slate-200 pb-5 mb-5">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
 
         <!-- Left: Official College Logo & Accreditation -->
         <div class="md:col-span-3 flex flex-col items-center md:items-start">
-          <img src="{logo_uri}" alt="Vidyalankar Institute of Technology" class="h-20 w-auto object-contain mb-1.5 hover:scale-105 transition-transform" />
+          <img src="{logo_uri}" alt="Vidyalankar Institute of Technology" class="h-20 w-auto object-contain mb-1 hover:scale-105 transition-transform" />
           <div class="text-[11px] font-bold text-slate-500 uppercase tracking-widest text-center md:text-left">
             University of Mumbai Affiliated
           </div>
@@ -279,18 +274,32 @@ def generate_poster_html() -> str:
             Explainable Vulnerability Prioritization (CVSS v3.1, CISA KEV, EPSS), 4-Tier Cryptographic Evidence Provenance, and Policy-Governed Scope Protection
           </p>
 
-          <!-- Authors & Mentors Row -->
-          <div class="bg-slate-50 border border-slate-200 rounded-lg py-2 px-4 inline-flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-xs">
-            <div>
-              <span class="font-bold text-[#0f2b5c]">Student Contributors:</span>
-              <span class="font-semibold text-slate-800" contenteditable="true">Parth Kamble (Lead) [Roll: 21102B00XX]</span> •
-              <span class="text-slate-700" contenteditable="true">[Team Member 2]</span> •
-              <span class="text-slate-700" contenteditable="true">[Team Member 3]</span> •
-              <span class="text-slate-700" contenteditable="true">[Team Member 4]</span>
+          <!-- Properly Formatted Team Members & Guide Card (Fixes Img 1) -->
+          <div class="bg-slate-50 border border-slate-300 rounded-xl p-2.5 max-w-3xl mx-auto shadow-sm">
+            <div class="text-[11px] font-bold text-[#0f2b5c] uppercase tracking-wider mb-1.5 flex items-center justify-center gap-2">
+              <svg class="w-3.5 h-3.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
+              Student Contributors (Dept. of Computer Engineering)
             </div>
-            <div class="border-l border-slate-300 pl-4 hidden sm:block">
+
+            <div class="flex flex-wrap items-center justify-center gap-2 text-xs mb-2">
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-300 rounded-lg shadow-sm" contenteditable="true">
+                <span class="font-bold text-slate-900">Vighnesh Somnath Waman</span>
+                <span class="px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded font-mono text-[11px] font-semibold">23101C0014</span>
+              </div>
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-300 rounded-lg shadow-sm" contenteditable="true">
+                <span class="font-bold text-slate-900">Parth Pravin Kamble</span>
+                <span class="px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded font-mono text-[11px] font-semibold">23101C0063</span>
+              </div>
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-300 rounded-lg shadow-sm" contenteditable="true">
+                <span class="font-bold text-slate-900">Vedant Suhas Puntambekar</span>
+                <span class="px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded font-mono text-[11px] font-semibold">23101C0076</span>
+              </div>
+            </div>
+
+            <div class="pt-1.5 border-t border-slate-200 flex items-center justify-center gap-2 text-xs" contenteditable="true">
               <span class="font-bold text-[#0f2b5c]">Project Guide:</span>
-              <span class="font-semibold text-slate-800" contenteditable="true">Prof. / Dr. [Guide Name], Ph.D.</span>
+              <span class="font-bold text-slate-800">Prof. Vinita Bhandiwad</span>
+              <span class="text-slate-500">• Assistant Professor, Dept. of Computer Engineering</span>
             </div>
           </div>
         </div>
@@ -316,16 +325,16 @@ def generate_poster_html() -> str:
     </header>
 
     <!-- ======================================================================= -->
-    <!-- 3-COLUMN ACADEMIC RESEARCH GRID                                         -->
+    <!-- 3-COLUMN BALANCED ACADEMIC RESEARCH GRID (Zero Blank Spaces)            -->
     <!-- ======================================================================= -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch">
 
       <!-- ===================================================================== -->
       <!-- COLUMN 1: MOTIVATION, FORMULATION & SCOPE PROTECTION                  -->
       <!-- ===================================================================== -->
-      <section class="space-y-4">
+      <section class="flex flex-col space-y-4">
 
-        <!-- Abstract & Motivation Card -->
+        <!-- 1. Abstract & Motivation Card -->
         <article class="poster-card p-4">
           <div class="section-title">
             <h2 class="font-bold text-sm text-[#0f2b5c] uppercase tracking-wider flex items-center gap-2" contenteditable="true">
@@ -333,15 +342,15 @@ def generate_poster_html() -> str:
             </h2>
             <span class="text-[10px] font-mono px-2 py-0.5 bg-blue-50 text-blue-700 rounded font-semibold">OVERVIEW</span>
           </div>
-          <p class="text-xs text-slate-700 text-justify mb-2.5 leading-relaxed" contenteditable="true">
-            Modern enterprise vulnerability management suffers from severe alert fatigue and triage paralysis. Conventional port scanners (e.g., standard Nmap or raw banner matchers) produce vast numbers of unverified alerts, treating arbitrary version matches as confirmed vulnerabilities without assessing whether the bug is actively weaponized in the wild. Furthermore, unauthorized out-of-scope scanning poses acute legal liability under the <strong>Indian IT Act 2000 (Sec 43/66)</strong> and <strong>CFAA</strong>.
+          <p class="text-xs text-slate-700 text-justify mb-2 leading-relaxed" contenteditable="true">
+            Enterprise vulnerability management routinely suffers from acute alert fatigue and triage paralysis. Conventional port scanners (e.g. raw Nmap or banner matchers) generate massive volumes of unverified alerts, treating version match heuristics as confirmed exploits without evaluating active in-the-wild exploitation. Furthermore, out-of-scope scanning creates immediate legal liabilities under the <strong>Indian IT Act 2000 (Sec 43/66)</strong> and <strong>CFAA</strong>.
           </p>
           <p class="text-xs text-slate-700 text-justify leading-relaxed" contenteditable="true">
-            <strong>AEGIS-Recon</strong> bridges this gap by engineering a zero-trust, policy-governed network reconnaissance platform. It combines native subprocess security, multi-factor risk scoring, 4-tier cryptographic evidence provenance, and grounded threat intelligence to transform raw recon into actionable, verifiable defensive remediation.
+            <strong>AEGIS-Recon</strong> resolves this crisis by introducing a zero-trust, policy-governed network reconnaissance platform. It combines non-blocking execution security, 4-factor composite risk scoring, 4-tier cryptographic evidence provenance, and deterministic AI playbooks to convert raw telemetry into verifiable defensive remediation.
           </p>
         </article>
 
-        <!-- Problem Statement & Industry Gaps Table -->
+        <!-- 2. Problem Statement & Limitations Table -->
         <article class="poster-card p-4">
           <div class="section-title">
             <h2 class="font-bold text-sm text-[#0f2b5c] uppercase tracking-wider flex items-center gap-2" contenteditable="true">
@@ -355,31 +364,31 @@ def generate_poster_html() -> str:
                 <tr>
                   <th class="p-2 border-r border-slate-200">Industry Challenge</th>
                   <th class="p-2 border-r border-slate-200">Legacy Tool Flaw</th>
-                  <th class="p-2 text-[#0f2b5c]">AEGIS-Recon Innovation</th>
+                  <th class="p-2 text-[#0f2b5c]">AEGIS-Recon Solution</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-200 text-slate-600">
                 <tr>
-                  <td class="p-2 font-semibold border-r border-slate-200">CVSS Score Inflation</td>
-                  <td class="p-2 border-r border-slate-200">60%+ CVEs labeled "Critical" regardless of exploit availability</td>
-                  <td class="p-2 font-semibold text-emerald-700">Multi-factor score with CISA KEV & EPSS exploit probability</td>
+                  <td class="p-1.5 font-semibold border-r border-slate-200">CVSS Inflation</td>
+                  <td class="p-1.5 border-r border-slate-200">60%+ CVEs rated "Critical" without exploit proof</td>
+                  <td class="p-1.5 font-semibold text-emerald-700">Multi-factor score with CISA KEV & EPSS probability</td>
                 </tr>
                 <tr>
-                  <td class="p-2 font-semibold border-r border-slate-200">Banner False Positives</td>
-                  <td class="p-2 border-r border-slate-200">Assumes version banner equals confirmed exploitation</td>
-                  <td class="p-2 font-semibold text-emerald-700">Strict 4-tier evidence: Version matches tagged as Hypotheses</td>
+                  <td class="p-1.5 font-semibold border-r border-slate-200">Banner False Positives</td>
+                  <td class="p-1.5 border-r border-slate-200">Equates version headers to confirmed exploitability</td>
+                  <td class="p-1.5 font-semibold text-emerald-700">Strict 4-tier evidence: Banner matches = Hypothesis only</td>
                 </tr>
                 <tr>
-                  <td class="p-2 font-semibold border-r border-slate-200">Scope Creep & Injection</td>
-                  <td class="p-2 border-r border-slate-200">Raw shell command execution prone to shell command injection</td>
-                  <td class="p-2 font-semibold text-emerald-700">Zero-bypass YAML CIDR allowlist + <code>shell=False</code> execution</td>
+                  <td class="p-1.5 font-semibold border-r border-slate-200">Scope Creep / Injection</td>
+                  <td class="p-1.5 border-r border-slate-200">Executes arbitrary shell strings prone to command injection</td>
+                  <td class="p-1.5 font-semibold text-emerald-700">Dual-lock CIDR allowlist + native <code>shell=False</code> arrays</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </article>
 
-        <!-- Explainable Multi-Factor Risk Formulation -->
+        <!-- 3. Explainable Risk Scoring Engine Formulation -->
         <article class="poster-card p-4">
           <div class="section-title">
             <h2 class="font-bold text-sm text-[#0f2b5c] uppercase tracking-wider flex items-center gap-2" contenteditable="true">
@@ -387,7 +396,7 @@ def generate_poster_html() -> str:
             </h2>
             <span class="text-[10px] font-mono px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded font-semibold">FORMULATION</span>
           </div>
-          <div class="formula-box text-xs text-slate-800 mb-2.5" contenteditable="true">
+          <div class="formula-box text-xs text-slate-800 mb-2" contenteditable="true">
             <div class="font-bold text-[#0f2b5c] mb-1">Composite Priority Score Formulation (0 to 100):</div>
             Priority = [ w_cvss · S_cvss + w_kev · B_kev + w_epss · P_epss ] · C_asset · E_exposure
           </div>
@@ -407,8 +416,8 @@ def generate_poster_html() -> str:
           </div>
         </article>
 
-        <!-- Policy-Governed Scope Protection -->
-        <article class="poster-card p-4">
+        <!-- 4. Policy-Governed Zero-Trust Scope Protection -->
+        <article class="poster-card p-4 flex-1">
           <div class="section-title">
             <h2 class="font-bold text-sm text-[#0f2b5c] uppercase tracking-wider flex items-center gap-2" contenteditable="true">
               <span class="w-2 h-2 rounded-full bg-indigo-600"></span> 4. Policy-Governed Scope Protection
@@ -425,7 +434,7 @@ def generate_poster_html() -> str:
             </li>
             <li class="flex items-start gap-1.5" contenteditable="true">
               <span class="text-emerald-600 font-bold">✔</span>
-              <span><strong>Shell-Injection Defense:</strong> Subprocesses execute via list-based argument arrays with <code>shell=False</code>, completely neutralizing shell metacharacter injection (<code>; & |</code>).</span>
+              <span><strong>Shell-Injection Defense:</strong> Subprocesses execute via list-based argument arrays with <code>shell=False</code>, completely neutralizing shell metacharacter injection (<code>; & | ` $</code>).</span>
             </li>
           </ul>
         </article>
@@ -433,67 +442,63 @@ def generate_poster_html() -> str:
       </section>
 
       <!-- ===================================================================== -->
-      <!-- COLUMN 2: SYSTEM ARCHITECTURE & TECHNICAL INNOVATION                  -->
+      <!-- COLUMN 2: ARCHITECTURE, SECURITY GATEWAY & EVIDENCE PROVENANCE        -->
       <!-- ===================================================================== -->
-      <section class="space-y-4">
+      <section class="flex flex-col space-y-4">
 
-        <!-- System Architecture Flowchart Card -->
+        <!-- 5. Visual System Architecture & Data Flow (Fills Space) -->
         <article class="poster-card p-4">
           <div class="section-title">
             <h2 class="font-bold text-sm text-[#0f2b5c] uppercase tracking-wider flex items-center gap-2" contenteditable="true">
-              <span class="w-2 h-2 rounded-full bg-blue-600"></span> 5. Layered System Architecture
+              <span class="w-2 h-2 rounded-full bg-blue-600"></span> 5. Layered System Architecture & Data Flow
             </h2>
             <span class="text-[10px] font-mono px-2 py-0.5 bg-blue-50 text-blue-700 rounded font-semibold">PIPELINE</span>
           </div>
 
-          <!-- Architecture Flowchart in Crisp HTML/CSS -->
-          <div class="space-y-2 text-xs">
-            <div class="p-2 rounded-md bg-blue-50 border border-blue-200 text-center">
-              <div class="font-bold text-[#0f2b5c]">1. Analyst Interaction Layer</div>
-              <div class="text-[11px] text-slate-600">Enterprise Cyber SOC Dashboard (Vanilla JS / Chart.js) & REST API (FastAPI)</div>
+          <!-- Crisp Architecture Diagram SVG / Flow -->
+          <div class="space-y-1.5 text-xs">
+            <div class="p-2 rounded bg-blue-50 border border-blue-200 text-center">
+              <div class="font-bold text-[#0f2b5c]">1. Analyst Interface Layer</div>
+              <div class="text-[11px] text-slate-600">Enterprise Cyber SOC Dashboard (HTML5/JS/Chart.js) & REST API (FastAPI)</div>
             </div>
+            <div class="flex justify-center text-slate-400 font-bold text-[11px]">↓ (Target IP / CIDR Subnet)</div>
 
-            <div class="flex justify-center text-slate-400 font-bold">↓ (HTTP / REST)</div>
-
-            <div class="p-2 rounded-md bg-amber-50 border border-amber-200 text-center">
+            <div class="p-2 rounded bg-amber-50 border border-amber-200 text-center">
               <div class="font-bold text-amber-900">2. Scope Protection & Validation Boundary</div>
-              <div class="text-[11px] text-slate-700">CIDR Matcher • Allowlist YAML • Subprocess Argument Sanitizer (<code>shell=False</code>)</div>
+              <div class="text-[11px] text-slate-700">YAML CIDR Matcher • Allowlist Policy Gate • <code>shell=False</code> Sanitizer</div>
             </div>
+            <div class="flex justify-center text-slate-400 font-bold text-[11px]">↓ (Authorized Scope Confirmed)</div>
 
-            <div class="flex justify-center text-slate-400 font-bold">↓ (Authorized Target Only)</div>
-
-            <div class="p-2 rounded-md bg-slate-100 border border-slate-300 text-center">
+            <div class="p-2 rounded bg-slate-100 border border-slate-300 text-center">
               <div class="font-bold text-slate-800">3. Non-Blocking Reconnaissance Engine</div>
-              <div class="text-[11px] text-slate-600">Native Nmap Execution • XML Streamer • Native <code>xml.etree</code> Parsing</div>
+              <div class="text-[11px] text-slate-600">Nmap Execution Subprocess • XML Streamer • Native <code>xml.etree</code> Parsing</div>
             </div>
+            <div class="flex justify-center text-slate-400 font-bold text-[11px]">↓ (Raw Service & Port Telemetry)</div>
 
-            <div class="flex justify-center text-slate-400 font-bold">↓ (Raw Port & Banner Stream)</div>
-
-            <div class="p-2 rounded-md bg-emerald-50 border border-emerald-200 text-center">
+            <div class="p-2 rounded bg-emerald-50 border border-emerald-200 text-center">
               <div class="font-bold text-emerald-900">4. 5-Level Resilient CPE Correlation & Risk Engine</div>
-              <div class="text-[11px] text-slate-700">CPE 2.3 Normalization • NIST NVD 2.0 • CISA KEV • FIRST EPSS Exploit Prediction</div>
+              <div class="text-[11px] text-slate-700">CPE 2.3 Normalizer • NIST NVD 2.0 • CISA KEV • FIRST EPSS Exploit Scoring</div>
             </div>
+            <div class="flex justify-center text-slate-400 font-bold text-[11px]">↓ (Ranked Findings with Context)</div>
 
-            <div class="flex justify-center text-slate-400 font-bold">↓ (Ranked Vulnerability Findings)</div>
-
-            <div class="p-2 rounded-md bg-purple-50 border border-purple-200 text-center">
-              <div class="font-bold text-purple-900">5. Cryptographic Evidence & AI Intelligence</div>
-              <div class="text-[11px] text-slate-700">4-Tier SHA-256 Provenance Chain • Deterministic Exploitability & Defense Playbook</div>
+            <div class="p-2 rounded bg-purple-50 border border-purple-200 text-center">
+              <div class="font-bold text-purple-900">5. Cryptographic Evidence Vault & Grounded AI</div>
+              <div class="text-[11px] text-slate-700">4-Tier SHA-256 Provenance Chain • Deterministic Exploitability & Defense Cards</div>
             </div>
           </div>
         </article>
 
-        <!-- 4-Tier Cryptographic Evidence Provenance Model -->
+        <!-- 6. 4-Tier Cryptographic Evidence Provenance Model -->
         <article class="poster-card p-4">
           <div class="section-title">
             <h2 class="font-bold text-sm text-[#0f2b5c] uppercase tracking-wider flex items-center gap-2" contenteditable="true">
               <span class="w-2 h-2 rounded-full bg-purple-600"></span> 6. 4-Tier Cryptographic Evidence Model
             </h2>
-            <span class="text-[10px] font-mono px-2 py-0.5 bg-purple-50 text-purple-700 rounded font-semibold">ZERO-TRUST</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 bg-purple-50 text-purple-700 rounded font-semibold">PROVENANCE</span>
           </div>
-          <p class="text-xs text-slate-700 mb-2" contenteditable="true">
-            To prevent false accusations and hallucinations, findings follow a strict 4-tier chain of custody sealed with SHA-256 integrity digests:
-          </p>
+          <div class="formula-box text-[11px] text-slate-800 mb-2" contenteditable="true">
+            <strong>Cryptographic Digest:</strong> proof_hash = SHA256(scan_id || target || port || cve_id || tier)
+          </div>
           <div class="grid grid-cols-2 gap-2 text-xs">
             <div class="bg-emerald-50 border border-emerald-200 p-2 rounded" contenteditable="true">
               <div class="font-bold text-emerald-800 text-[11px]">TIER 1: OBSERVED</div>
@@ -501,11 +506,11 @@ def generate_poster_html() -> str:
             </div>
             <div class="bg-blue-50 border border-blue-200 p-2 rounded" contenteditable="true">
               <div class="font-bold text-blue-800 text-[11px]">TIER 2: EXTERNAL INTEL</div>
-              <div class="text-[10px] text-slate-600">Authoritative feed data (NVD CVE descriptions, CISA KEV date, EPSS score).</div>
+              <div class="text-[10px] text-slate-600">Authoritative feed data (NVD CVE records, CISA KEV date, EPSS score).</div>
             </div>
             <div class="bg-amber-50 border border-amber-200 p-2 rounded" contenteditable="true">
               <div class="font-bold text-amber-800 text-[11px]">TIER 3: HYPOTHESIS</div>
-              <div class="text-[10px] text-slate-600">Deductions requiring manual verification (e.g. Version match ≠ Exploit).</div>
+              <div class="text-[10px] text-slate-600">Deductions requiring manual verification (Version match ≠ Exploit).</div>
             </div>
             <div class="bg-purple-50 border border-purple-200 p-2 rounded" contenteditable="true">
               <div class="font-bold text-purple-800 text-[11px]">TIER 4: RECOMMENDATION</div>
@@ -514,17 +519,17 @@ def generate_poster_html() -> str:
           </div>
         </article>
 
-        <!-- 5-Level Resilient CPE Hierarchy -->
+        <!-- 7. 5-Level Resilient CPE Normalization Hierarchy -->
         <article class="poster-card p-4">
           <div class="section-title">
             <h2 class="font-bold text-sm text-[#0f2b5c] uppercase tracking-wider flex items-center gap-2" contenteditable="true">
               <span class="w-2 h-2 rounded-full bg-cyan-600"></span> 7. 5-Level Resilient CPE Correlation
             </h2>
-            <span class="text-[10px] font-mono px-2 py-0.5 bg-cyan-50 text-cyan-700 rounded font-semibold">CORRELATION</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 bg-cyan-50 text-cyan-700 rounded font-semibold">NORMALIZATION</span>
           </div>
           <div class="space-y-1.5 text-xs text-slate-700">
             <div class="p-1.5 bg-slate-50 border border-slate-200 rounded flex items-center justify-between" contenteditable="true">
-              <span><strong>Level 1:</strong> Exact CPE 2.3 Match (e.g., <code>cpe:/a:apache:http_server:2.4.49</code>)</span>
+              <span><strong>Level 1:</strong> Exact CPE 2.3 Match (e.g. <code>cpe:/a:apache:http_server:2.4.49</code>)</span>
               <span class="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">High Conf</span>
             </div>
             <div class="p-1.5 bg-slate-50 border border-slate-200 rounded flex items-center justify-between" contenteditable="true">
@@ -546,18 +551,45 @@ def generate_poster_html() -> str:
           </div>
         </article>
 
+        <!-- 8. SOC Analyst Triage Lifecycle State Machine (Fills Space) -->
+        <article class="poster-card p-4 flex-1">
+          <div class="section-title">
+            <h2 class="font-bold text-sm text-[#0f2b5c] uppercase tracking-wider flex items-center gap-2" contenteditable="true">
+              <span class="w-2 h-2 rounded-full bg-teal-600"></span> 8. Analyst Triage Lifecycle & Audit Trail
+            </h2>
+            <span class="text-[10px] font-mono px-2 py-0.5 bg-teal-50 text-teal-700 rounded font-semibold">LIFECYCLE</span>
+          </div>
+          <p class="text-xs text-slate-700 mb-2" contenteditable="true">
+            Vulnerabilities follow an auditable state-machine ensuring every decision is permanently recorded with reason codes and timestamps:
+          </p>
+          <div class="flex flex-wrap items-center justify-center gap-1.5 text-[10px] font-bold text-slate-700 mb-2">
+            <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded border border-blue-200">NEW</span>
+            <span>➔</span>
+            <span class="px-2 py-1 bg-amber-100 text-amber-800 rounded border border-amber-200">IN_REVIEW</span>
+            <span>➔</span>
+            <span class="px-2 py-1 bg-emerald-100 text-emerald-800 rounded border border-emerald-200">VERIFIED</span>
+            <span class="text-slate-400">|</span>
+            <span class="px-2 py-1 bg-rose-100 text-rose-800 rounded border border-rose-200">FALSE_POSITIVE</span>
+            <span class="text-slate-400">|</span>
+            <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded border border-purple-200">REMEDIATED</span>
+          </div>
+          <div class="text-[11px] text-slate-600 bg-slate-50 p-2 rounded border border-slate-200" contenteditable="true">
+            <strong>Analyst Actions:</strong> <code>Verify</code>, <code>False Positive</code>, <code>Accept Risk</code>, <code>Remediate</code>, <code>Snooze</code>, <code>Why?</code> (Provenance Verification).
+          </div>
+        </article>
+
       </section>
 
       <!-- ===================================================================== -->
-      <!-- COLUMN 3: EMPIRICAL BENCHMARKS, UI SHOWCASE & DEFENSE                 -->
+      <!-- COLUMN 3: BENCHMARK FLEET, COMPARATIVE EVALUATION & FUTURE SCOPE     -->
       <!-- ===================================================================== -->
-      <section class="space-y-4">
+      <section class="flex flex-col space-y-4">
 
-        <!-- Multi-Environment Test Fleet Benchmark -->
+        <!-- 9. Multi-Environment Test Fleet Benchmark -->
         <article class="poster-card p-4">
           <div class="section-title">
             <h2 class="font-bold text-sm text-[#0f2b5c] uppercase tracking-wider flex items-center gap-2" contenteditable="true">
-              <span class="w-2 h-2 rounded-full bg-blue-600"></span> 8. Multi-Asset Benchmark Fleet
+              <span class="w-2 h-2 rounded-full bg-blue-600"></span> 9. Multi-Asset Benchmark Fleet
             </h2>
             <span class="text-[10px] font-mono px-2 py-0.5 bg-blue-50 text-blue-700 rounded font-semibold">TESTBED</span>
           </div>
@@ -565,25 +597,25 @@ def generate_poster_html() -> str:
             <div class="p-2 border border-slate-200 rounded bg-slate-50" contenteditable="true">
               <div class="font-bold text-[#0f2b5c]">Metasploitable 2 (Linux 2.6)</div>
               <div class="text-[10px] text-slate-500">192.168.56.101 • PRODUCTION</div>
-              <div>5 CVEs (2 KEV) • Score: <strong>88/100</strong></div>
+              <div>5 CVEs (2 KEV) • Priority: <strong>88/100</strong></div>
             </div>
             <div class="p-2 border border-slate-200 rounded bg-slate-50" contenteditable="true">
               <div class="font-bold text-[#0f2b5c]">Metasploitable 3 (WinServer 2016)</div>
               <div class="text-[10px] text-slate-500">192.168.56.102 • STAGING</div>
-              <div>7 CVEs (1 KEV - MS17-010) • Score: <strong>84/100</strong></div>
+              <div>7 CVEs (1 KEV - MS17-010) • Priority: <strong>84/100</strong></div>
             </div>
             <div class="p-2 border border-slate-200 rounded bg-slate-50" contenteditable="true">
               <div class="font-bold text-[#0f2b5c]">Metasploitable 3 (Ubuntu 14.04)</div>
               <div class="text-[10px] text-slate-500">192.168.56.103 • DEV</div>
-              <div>6 CVEs (1 KEV - ProFTPD) • Score: <strong>78/100</strong></div>
+              <div>6 CVEs (1 KEV - ProFTPD) • Priority: <strong>78/100</strong></div>
             </div>
             <div class="p-2 border border-slate-200 rounded bg-slate-50" contenteditable="true">
               <div class="font-bold text-[#0f2b5c]">Kioptrix Level 1 (RedHat 9 CTF)</div>
               <div class="text-[10px] text-slate-500">192.168.56.104 • LAB</div>
-              <div>4 CVEs (mod_ssl OpenFuck) • Score: <strong>76/100</strong></div>
+              <div>4 CVEs (mod_ssl OpenFuck) • Priority: <strong>76/100</strong></div>
             </div>
           </div>
-          <!-- Quantitative Metrics Bar -->
+          <!-- Quantitative Evaluation Bar -->
           <div class="grid grid-cols-3 gap-2 text-center text-xs">
             <div class="p-1.5 bg-emerald-50 border border-emerald-200 rounded">
               <div class="text-base font-extrabold text-emerald-700">0%</div>
@@ -600,11 +632,59 @@ def generate_poster_html() -> str:
           </div>
         </article>
 
-        <!-- Platform Visual Showcase (Actual UI Captures) -->
+        <!-- 10. Comparative Industry Evaluation (Fills Space) -->
         <article class="poster-card p-4">
           <div class="section-title">
             <h2 class="font-bold text-sm text-[#0f2b5c] uppercase tracking-wider flex items-center gap-2" contenteditable="true">
-              <span class="w-2 h-2 rounded-full bg-emerald-600"></span> 9. Live Platform Telemetry & SOC GUI
+              <span class="w-2 h-2 rounded-full bg-indigo-600"></span> 10. Comparative Benchmark Analysis
+            </h2>
+            <span class="text-[10px] font-mono px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded font-semibold">BENCHMARK</span>
+          </div>
+          <div class="overflow-x-auto text-[10px]">
+            <table class="w-full border border-slate-200 rounded text-left">
+              <thead class="bg-slate-100 text-slate-800 font-bold border-b border-slate-200">
+                <tr>
+                  <th class="p-1.5 border-r border-slate-200">Metric / Capability</th>
+                  <th class="p-1.5 border-r border-slate-200">Legacy Nmap</th>
+                  <th class="p-1.5 border-r border-slate-200">Nessus / OpenVAS</th>
+                  <th class="p-1.5 text-[#0f2b5c]">AEGIS-Recon</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 text-slate-600">
+                <tr>
+                  <td class="p-1.5 font-semibold border-r border-slate-200">Scope Gating</td>
+                  <td class="p-1.5 border-r border-slate-200 text-red-600">None (CLI flags)</td>
+                  <td class="p-1.5 border-r border-slate-200 text-amber-600">Target Range UI</td>
+                  <td class="p-1.5 font-semibold text-emerald-700">YAML CIDR Dual-Lock</td>
+                </tr>
+                <tr>
+                  <td class="p-1.5 font-semibold border-r border-slate-200">Prioritization</td>
+                  <td class="p-1.5 border-r border-slate-200 text-slate-400">None</td>
+                  <td class="p-1.5 border-r border-slate-200 text-amber-600">CVSS Base Score</td>
+                  <td class="p-1.5 font-semibold text-emerald-700">CVSS + KEV + EPSS</td>
+                </tr>
+                <tr>
+                  <td class="p-1.5 font-semibold border-r border-slate-200">Evidence Provenance</td>
+                  <td class="p-1.5 border-r border-slate-200 text-slate-400">Plain text stdout</td>
+                  <td class="p-1.5 border-r border-slate-200 text-slate-400">Unsealed log file</td>
+                  <td class="p-1.5 font-semibold text-emerald-700">4-Tier SHA-256 Ledger</td>
+                </tr>
+                <tr>
+                  <td class="p-1.5 font-semibold border-r border-slate-200">Execution Safety</td>
+                  <td class="p-1.5 border-r border-slate-200 text-red-600">Shell execution</td>
+                  <td class="p-1.5 border-r border-slate-200 text-slate-600">Proprietary agent</td>
+                  <td class="p-1.5 font-semibold text-emerald-700">Native <code>shell=False</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <!-- 11. Platform Visual Showcase (Actual UI Captures) -->
+        <article class="poster-card p-4">
+          <div class="section-title">
+            <h2 class="font-bold text-sm text-[#0f2b5c] uppercase tracking-wider flex items-center gap-2" contenteditable="true">
+              <span class="w-2 h-2 rounded-full bg-emerald-600"></span> 11. Live Cyber SOC GUI Telemetry
             </h2>
             <span class="text-[10px] font-mono px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded font-semibold">SCREENSHOTS</span>
           </div>
@@ -629,26 +709,26 @@ def generate_poster_html() -> str:
           </div>
         </article>
 
-        <!-- Viva Highlights & Key Takeaways Card -->
-        <article class="poster-card p-4 bg-gradient-to-br from-slate-50 to-blue-50/50">
+        <!-- 12. Conclusion & Future Scope (Fixes Img 2 Heading & Badge) -->
+        <article class="poster-card p-4 bg-gradient-to-br from-slate-50 to-blue-50/50 flex-1">
           <div class="section-title">
             <h2 class="font-bold text-sm text-[#0f2b5c] uppercase tracking-wider flex items-center gap-2" contenteditable="true">
-              <span class="w-2 h-2 rounded-full bg-amber-600"></span> 10. Conclusion & Viva Defense Points
+              <span class="w-2 h-2 rounded-full bg-amber-600"></span> 12. Conclusion & Future Scope
             </h2>
-            <span class="text-[10px] font-mono px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-semibold">VIVA READY</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 bg-blue-100 text-blue-900 rounded font-semibold">PROJECT OUTCOMES</span>
           </div>
           <ul class="text-xs space-y-1.5 text-slate-700">
             <li class="flex items-start gap-1.5" contenteditable="true">
               <span class="text-blue-600 font-bold">•</span>
-              <span><strong>Why not just use Nmap directly?</strong> Nmap is an active scanner, not a threat intelligence or triage system. AEGIS adds mathematical scoring, policy gating, and evidence provenance.</span>
+              <span><strong>Zero-Trust Reconnaissance:</strong> Successfully eliminated alert fatigue and reconnaissance liability by uniting policy-governed scope authorization with multi-factor risk prioritization.</span>
             </li>
             <li class="flex items-start gap-1.5" contenteditable="true">
               <span class="text-blue-600 font-bold">•</span>
-              <span><strong>How is Scope Protection guaranteed?</strong> Evaluated via IP network subnet containment in YAML before any subprocess spawns; non-bypassable by design.</span>
+              <span><strong>Evidence-Grounded Triage:</strong> Cryptographic SHA-256 evidence provenance ensures tamper-evident audit trails, distinguishing unverified banner hypotheses from real vulnerabilities.</span>
             </li>
             <li class="flex items-start gap-1.5" contenteditable="true">
               <span class="text-blue-600 font-bold">•</span>
-              <span><strong>Engineering Rigor:</strong> 550 tests passing in CI/CD across Python 3.11, 3.12, 3.13; 0 Bandit AST vulnerabilities; SQLite WAL ACID transactions.</span>
+              <span><strong>Engineering Rigor & Future Scope:</strong> 550 test cases passing in continuous integration across Python 3.11–3.13. Future work includes SIEM/SOAR streaming and distributed Kubernetes scanner pods.</span>
             </li>
           </ul>
         </article>
@@ -660,7 +740,7 @@ def generate_poster_html() -> str:
     <!-- ======================================================================= -->
     <!-- POSTER FOOTER                                                           -->
     <!-- ======================================================================= -->
-    <footer class="mt-6 pt-4 border-t-2 border-slate-200 flex flex-wrap items-center justify-between gap-4 text-[11px] text-slate-500">
+    <footer class="mt-5 pt-3 border-t-2 border-slate-200 flex flex-wrap items-center justify-between gap-4 text-[11px] text-slate-500">
       <div contenteditable="true">
         <strong>Vidyalankar Institute of Technology</strong> • Approved by AICTE, Accredited A+ by NAAC, Affiliated to University of Mumbai • Vidyalankar Educational Campus, Wadala (E), Mumbai 400037
       </div>
@@ -678,7 +758,7 @@ def generate_poster_html() -> str:
   <!-- ========================================================================= -->
   <script>
     let isEditMode = false;
-    const STORAGE_KEY = 'aegis_poster_custom_content_v1';
+    const STORAGE_KEY = 'aegis_poster_custom_content_v2';
 
     // 1. Toggle Live In-Browser Edit Mode
     function toggleEditMode() {{
@@ -739,7 +819,6 @@ def generate_poster_html() -> str:
 
     // 5. Export Customized Poster as Standalone HTML File
     function exportPosterHtml() {{
-      // Temporarily exit edit mode so outlines aren't baked into exported file
       const wasEdit = isEditMode;
       if (wasEdit) toggleEditMode();
 
@@ -783,7 +862,7 @@ def generate_poster_html() -> str:
 
 
 def main() -> None:
-    print("Generating AEGIS-Recon Academic Poster HTML...")
+    print("Generating AEGIS-Recon Academic Poster HTML (Enhanced Version)...")
     base_dir = Path(__file__).resolve().parents[1]
 
     # Target 1: In the workspace docs/poster/ directory

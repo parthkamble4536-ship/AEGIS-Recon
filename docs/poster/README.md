@@ -33,3 +33,4 @@ This directory contains the official, publication-ready, light-theme academic ex
      - **Paper Size**: **A1** (for standard large-scale conference boards) or **A2 / A3 / A4** for report submission.
      - **Options**: Ensure **Background graphics** is **checked** so all color cards, badges, and logos are rendered vibrantly.
      - **Headers and footers**: Uncheck to keep the poster border clean.
+
